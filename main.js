@@ -50,6 +50,11 @@ function applyDiscount(price, productIndex, country) {
     if (customPrice !== undefined && customPrice !== null && !isNaN(customPrice)) {
         return Number(parseFloat(customPrice).toFixed(2));
     }
+    // Nie stosuj rabatu, jeśli kategoria produktu to "M"
+    const product = productsData[country] && productsData[country][productIndex];
+    if (product && product.KATEGORIA === "M") {
+        return Number(parsedPrice.toFixed(2));
+    }
     return Number((parsedPrice * (1 - discountPercentage / 100)).toFixed(2));
 }
 
@@ -582,7 +587,7 @@ function updateCart() {
 }
 
 // Funkcja usuwania produktu z koszyka
-function removeItem(color, index) {
+function removeItem(country, index) {
     productsData.romania[index].quantity = 0;
     if (activeTab === 'cart') {
         updateCart();
@@ -797,7 +802,7 @@ function createSearchBar() {
             const productName = product.querySelector('.product-name')?.textContent.toLowerCase() || '';
             const productCode = product.querySelector('.product-code')?.textContent.toLowerCase() || '';
             const productIndex = product.dataset.index;
-            const productCategory = productsData[activeTab] && productsData[activeTab][productIndex]?.Kategoria?.toLowerCase() || '';
+            const productCategory = productsData[activeTab] && productsData[activeTab][productIndex]?.KATEGORIA?.toLowerCase() || '';
             const nameWords = productName.split(/\s+/);
             const normalizedSelectedCategory = selectedCategory.toLowerCase().replace(/-/g, ' ');
             const normalizedProductCategory = productCategory.replace(/-/g, ' ');
