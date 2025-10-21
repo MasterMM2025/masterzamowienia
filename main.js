@@ -548,7 +548,7 @@ function updateCart() {
     let totalCartValue = 0;
     productsData.romania.forEach((product, index) => {
         if (product.quantity > 0) {
-            const imageUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/zdjecia-bulgaria/${product['INDEKS']}.jpg`;
+            const imageUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}.jpg`;
             const productElement = document.createElement("div");
             productElement.classList.add("product");
             const originalPrice = parseFloat(product['CENA']) || 0;
@@ -573,23 +573,6 @@ function updateCart() {
                     <button class="remove-btn" onclick="removeItem('romania', ${index})">×</button>
                 </div>
             `;
-            const details = productElement.querySelector('.product-details');
-            let additionalInfo = '';
-            if (showCompetitorPrice && product['Cena konkurencji']) {
-                let competitorPriceColor = '';
-                if (parseFloat(product['Cena konkurencji']) < originalPrice) {
-                    competitorPriceColor = 'color: red;';
-                } else if (parseFloat(product['Cena konkurencji']) > originalPrice) {
-                    competitorPriceColor = 'color: green;';
-                }
-                additionalInfo += `<div class="competitor-price" style="margin-top: 5px; font-size: 16px; ${competitorPriceColor}">Competitor Price: ${product['Cena konkurencji']} GBP</div>`;
-            }
-            if (showStockInfo && product['Stany magazynowe']) {
-                additionalInfo += `<div class="stock-info" style="margin-top: 5px; font-size: 16px; color: #666;">Stany magazynowe: ${product['Stany magazynowe']}</div>`;
-            }
-            if (additionalInfo) {
-                details.innerHTML += `<div class="additional-info" style="margin-top: 5px;">${additionalInfo}</div>`;
-            }
             cartList.appendChild(productElement);
             totalCartValue += itemValue;
         }
@@ -599,7 +582,7 @@ function updateCart() {
 }
 
 // Funkcja usuwania produktu z koszyka
-function removeItem(country, index) {
+function removeItem(color, index) {
     productsData.romania[index].quantity = 0;
     if (activeTab === 'cart') {
         updateCart();
@@ -874,18 +857,10 @@ function loadProducts(country) {
                 productElement.dataset.index = index;
                 const originalPrice = parseFloat(product['CENA']) || 0;
                 const discountedPrice = applyDiscount(originalPrice, index, country);
-                const imageUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/zdjecia-bulgaria/${product['INDEKS']}.jpg`;
+                const imageUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}.jpg`;
                 const imgTest = new Image();
                 imgTest.src = imageUrl;
                 imgTest.onload = () => {
-                    let competitorPriceColor = '';
-                    if (product['Cena konkurencji'] && originalPrice) {
-                        if (parseFloat(product['Cena konkurencji']) < originalPrice) {
-                            competitorPriceColor = 'color: red;';
-                        } else if (parseFloat(product['Cena konkurencji']) > originalPrice) {
-                            competitorPriceColor = 'color: green;';
-                        }
-                    }
                     const img = document.createElement('img');
                     img.src = imageUrl;
                     img.alt = "Photo";
@@ -917,22 +892,6 @@ function loadProducts(country) {
                         <button onclick="showPriceDialog('${country}', ${index}, ${originalPrice})" style="margin-top: 5px; margin-right: 5px; padding: 5px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Set Custom Price</button>
                         <button onclick="resetCustomPrice('${country}', ${index})" style="margin-top: 5px; padding: 5px 10px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset Custom Price</button>
                     `;
-                    let additionalInfo = '';
-                    if (showCompetitorPrice && product['Cena konkurencji']) {
-                        let competitorPriceColor = '';
-                        if (parseFloat(product['Cena konkurencji']) < originalPrice) {
-                            competitorPriceColor = 'color: red;';
-                        } else if (parseFloat(product['Cena konkurencji']) > originalPrice) {
-                            competitorPriceColor = 'color: green;';
-                        }
-                        additionalInfo += `<div class="competitor-price" style="margin-top: 5px; font-size: 16px; ${competitorPriceColor}">Competitor Price: ${product['Cena konkurencji']} GBP</div>`;
-                    }
-                    if (showStockInfo && product['Stany magazynowe']) {
-                        additionalInfo += `<div class="stock-info" style="margin-top: 5px; font-size: 16px; color: #666;">Stany magazynowe: ${product['Stany magazynowe']}</div>`;
-                    }
-                    if (additionalInfo) {
-                        detailsHTML += `<div class="additional-info" style="margin-top: 5px;">${additionalInfo}</div>`;
-                    }
                     details.innerHTML = detailsHTML;
                     productElement.appendChild(details);
                     const controls = document.createElement('div');
