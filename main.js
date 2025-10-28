@@ -139,7 +139,6 @@ function showInitialDialog() {
     closeButton.onmouseover = () => closeButton.style.backgroundColor = '#999';
     closeButton.onmouseout = () => closeButton.style.backgroundColor = '#ccc';
     closeButton.onclick = () => document.body.removeChild(modal);
-
     const discountLabel = document.createElement('label');
     discountLabel.innerText = 'Discount (%): ';
     discountLabel.style.cssText = `display: block; margin: 10px 0 5px; font-weight: normal;`;
@@ -149,7 +148,6 @@ function showInitialDialog() {
     discountInput.style.cssText = `width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;`;
     discountInput.min = 0;
     discountInput.max = 100;
-
     const cashBackLabel = document.createElement('label');
     cashBackLabel.innerText = 'Cash Back (%): ';
     cashBackLabel.style.cssText = `display: block; margin: 10px 0 5px; font-weight: normal;`;
@@ -159,7 +157,6 @@ function showInitialDialog() {
     cashBackInput.style.cssText = `width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;`;
     cashBackInput.min = 0;
     cashBackInput.max = 100;
-
     const buttonContainer = document.createElement('div');
     buttonContainer.style.cssText = `margin-top: 15px; text-align: right;`;
     const saveButton = document.createElement('button');
@@ -177,14 +174,12 @@ function showInitialDialog() {
         updatePrices();
         document.body.removeChild(modal);
     };
-
     const cancelButton = document.createElement('button');
     cancelButton.innerText = 'Cancel';
     cancelButton.style.cssText = `padding: 8px 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;`;
     cancelButton.onmouseover = () => cancelButton.style.backgroundColor = '#5a6268';
     cancelButton.onmouseout = () => cancelButton.style.backgroundColor = '#6c757d';
     cancelButton.onclick = () => document.body.removeChild(modal);
-
     buttonContainer.appendChild(saveButton);
     buttonContainer.appendChild(cancelButton);
     modalContent.appendChild(closeButton);
@@ -213,7 +208,6 @@ function showPriceDialog(country, index, originalPrice) {
     priceInput.value = customPrices[`${country}-${index}`] || originalPrice;
     priceInput.style.cssText = `width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;`;
     priceInput.min = 0;
-
     const saveButton = document.createElement('button');
     saveButton.innerText = 'Save';
     saveButton.style.cssText = `width: 100%; padding: 6px; margin-top: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;`;
@@ -230,14 +224,12 @@ function showPriceDialog(country, index, originalPrice) {
         }
         document.body.removeChild(modal);
     };
-
     const cancelButton = document.createElement('button');
     cancelButton.innerText = 'Cancel';
     cancelButton.style.cssText = `width: 100%; padding: 6px; margin-top: 5px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;`;
     cancelButton.onmouseover = () => cancelButton.style.backgroundColor = '#5a6268';
     cancelButton.onmouseout = () => cancelButton.style.backgroundColor = '#6c757d';
     cancelButton.onclick = () => document.body.removeChild(modal);
-
     modal.appendChild(priceLabel);
     modal.appendChild(priceInput);
     modal.appendChild(saveButton);
@@ -246,6 +238,9 @@ function showPriceDialog(country, index, originalPrice) {
 }
 
 function createSidebar() {
+    const oldSidebar = document.getElementById('sidebar');
+    if (oldSidebar) oldSidebar.remove();
+
     const sidebar = document.createElement('div');
     sidebar.id = 'sidebar';
     sidebar.style.cssText = `
@@ -364,9 +359,7 @@ function switchTab(country) {
     if (selectedTab) selectedTab.classList.add('active');
     const selectedList = document.getElementById(`product-list-${country}`);
     if (selectedList) selectedList.classList.add('active');
-
     window.scrollTo(0, 0);
-
     const searchBar = document.getElementById('search-bar');
     if (searchBar) {
         const searchInput = searchBar.querySelector('input');
@@ -382,7 +375,6 @@ function switchTab(country) {
         });
         if (searchBar.applyFilters) searchBar.applyFilters();
     }
-
     let saveButtons = document.getElementById('save-buttons');
     if (!saveButtons) {
         saveButtons = document.createElement('div');
@@ -397,7 +389,6 @@ function switchTab(country) {
             <button onclick="saveCartToXLS()" style="padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Zapisz do XLS</button>
         `;
     }
-
     updateBanner();
     if (country === 'cart') {
         updateCart();
@@ -482,7 +473,6 @@ function updateCart() {
     if (!cartList) return;
     cartList.innerHTML = '';
     let totalCartValue = 0;
-
     productsData.romania.forEach((product, index) => {
         if (product.quantity > 0) {
             const baseUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}`;
@@ -493,11 +483,9 @@ function updateCart() {
             const priceDisplay = customPrice != null && !isNaN(customPrice)
                 ? `${discountedPrice.toFixed(2)} GBP (Custom)`
                 : `${discountedPrice.toFixed(2)} GBP (Original: ${originalPrice.toFixed(2)} GBP)`;
-
             // Tworzymy element z img
             const productElement = document.createElement("div");
             productElement.classList.add("product");
-
             // Tworzymy img z obsługą .jpg → .png → placeholder
             const img = document.createElement('img');
             img.style.cssText = 'position: relative; z-index: 0; max-width: 100px; width: 100%; height: auto;';
@@ -508,7 +496,6 @@ function updateCart() {
                     img.src = 'https://via.placeholder.com/100x100/cccccc/666666?text=No+Photo';
                 };
             };
-
             productElement.innerHTML = `
                 <div class="product-details">
                     <div class="product-code">Index: ${product['INDEKS']}</div>
@@ -523,15 +510,12 @@ function updateCart() {
                     <button class="remove-btn" onclick="removeItem('romania', ${index})">×</button>
                 </div>
             `;
-
             // Wstawiamy img przed details
             productElement.insertBefore(img, productElement.firstChild);
-
             cartList.appendChild(productElement);
             totalCartValue += itemValue;
         }
     });
-
     const cartTotal = document.getElementById("cart-total");
     if (cartTotal) cartTotal.innerText = `Cart value: ${totalCartValue.toFixed(2)} GBP`;
     updateCartInfo();
@@ -591,12 +575,10 @@ function submitOrder() {
     if (!hasItems) orderMessage += "No items in cart.\n\n";
     else orderMessage += `Total for Romania: ${countryTotal.toFixed(2)} GBP\n\n`;
     orderMessage += `Total order value: ${categoryTotals.romania.toFixed(2)} GBP\nDiscount: ${discountPercentage}%\nCash Back: ${customCashBackPercentage}%`;
-
     const formData = new FormData();
     formData.append("email", email);
     formData.append("store-name", storeName);
     formData.append("message", orderMessage);
-
     fetch("https://formspree.io/f/xanwzpgj", {
         method: "POST",
         body: formData,
@@ -622,12 +604,10 @@ function createSearchBar() {
         background-color: #f1f1f1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         z-index: 900; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
     `;
-
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = 'Search products...';
     searchInput.style.cssText = `flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; min-width: 150px;`;
-
     const categoryFilter = document.createElement('select');
     categoryFilter.style.cssText = `padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; min-width: 120px;`;
     const filterOptions = [
@@ -643,7 +623,6 @@ function createSearchBar() {
         option.text = opt.text;
         categoryFilter.appendChild(option);
     });
-
     const rankingFilter = document.createElement('select');
     rankingFilter.id = 'ranking-filter';
     rankingFilter.style.cssText = `padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; min-width: 150px;`;
@@ -658,7 +637,6 @@ function createSearchBar() {
         option.text = opt.text;
         rankingFilter.appendChild(option);
     });
-
     const clearFiltersButton = document.createElement('button');
     clearFiltersButton.innerText = 'Wyczyść filtry';
     clearFiltersButton.style.cssText = `padding: 8px 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; min-width: 100px;`;
@@ -670,26 +648,22 @@ function createSearchBar() {
         rankingFilter.value = '';
         applyFilters();
     };
-
     searchBarContainer.appendChild(searchInput);
     searchBarContainer.appendChild(categoryFilter);
     searchBarContainer.appendChild(rankingFilter);
     searchBarContainer.appendChild(clearFiltersButton);
-
     const bannerContainer = document.querySelector('.banner-container');
     if (bannerContainer && bannerContainer.nextSibling) {
         bannerContainer.parentNode.insertBefore(searchBarContainer, bannerContainer.nextSibling);
     } else {
         document.body.appendChild(searchBarContainer);
     }
-
     function applyFilters() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         const selectedCategory = categoryFilter.value;
         const sortOrder = rankingFilter.value;
         const productList = document.getElementById(`product-list-${activeTab}`);
         if (!productList) return;
-
         let products = Array.from(productList.querySelectorAll('.product'));
         if (sortOrder && productsData[activeTab]) {
             products.sort((a, b) => {
@@ -699,7 +673,6 @@ function createSearchBar() {
             });
             products.forEach(p => productList.appendChild(p));
         }
-
         products.forEach(product => {
             const name = product.querySelector('.product-name')?.textContent.toLowerCase() || '';
             const code = product.querySelector('.product-code')?.textContent.toLowerCase() || '';
@@ -712,7 +685,6 @@ function createSearchBar() {
             product.style.position = searchMatch && categoryMatch ? 'relative' : 'absolute';
         });
     }
-
     searchInput.oninput = applyFilters;
     categoryFilter.onchange = applyFilters;
     rankingFilter.onchange = applyFilters;
@@ -723,7 +695,6 @@ function createSearchBar() {
 function loadProducts(country) {
     console.log("Loading data for:", country);
     const url = 'https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/BLUGARIA.json';
-
     return fetch(url)
         .then(response => {
             if (!response.ok) throw new Error(`Błąd: ${response.status}`);
@@ -739,11 +710,9 @@ function loadProducts(country) {
                 }));
                 productsData.romania = data;
             }
-
             const productList = document.getElementById(`product-list-${country}`);
             if (!productList) return;
             productList.innerHTML = '';
-
             data.forEach((product, index) => {
                 const baseUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}`;
                 const img = document.createElement('img');
@@ -756,18 +725,15 @@ function loadProducts(country) {
                         img.src = 'https://via.placeholder.com/100x100/cccccc/666666?text=No+Photo';
                     };
                 };
-
                 const originalPrice = parseFloat(product['CENA']) || 0;
                 const discountedPrice = applyDiscount(originalPrice, index, country);
                 const customPrice = customPrices[`${country}-${index}`];
                 const priceDisplay = customPrice != null && !isNaN(customPrice)
                     ? `${discountedPrice.toFixed(2)} GBP (Custom)`
                     : `${discountedPrice.toFixed(2)} GBP (Original: ${originalPrice.toFixed(2)} GBP)`;
-
                 const productElement = document.createElement('div');
                 productElement.className = 'product';
                 productElement.dataset.index = index;
-
                 const details = document.createElement('div');
                 details.className = 'product-details';
                 details.innerHTML = `
@@ -778,7 +744,6 @@ function loadProducts(country) {
                     <button onclick="showPriceDialog('${country}', ${index}, ${originalPrice})" style="margin:5px 5px 0 0; padding:5px 8px; font-size:12px;">Set Custom Price</button>
                     <button onclick="resetCustomPrice('${country}', ${index})" style="margin:5px 0 0; padding:5px 8px; font-size:12px;">Reset</button>
                 `;
-
                 const controls = document.createElement('div');
                 controls.className = 'quantity-controls';
                 controls.innerHTML = `
@@ -786,7 +751,6 @@ function loadProducts(country) {
                     <input type="number" id="quantity-${country}-${index}" value="${product.quantity}" readonly>
                     <button onclick="changeQuantity('${country}', ${index}, 1)">+</button>
                 `;
-
                 if (window.innerWidth <= 600) {
                     img.onclick = () => img.classList.toggle('enlarged');
                 } else {
@@ -794,16 +758,13 @@ function loadProducts(country) {
                     productElement.style.padding = '10px';
                     details.style.fontSize = '14px';
                 }
-
                 productElement.appendChild(img);
                 productElement.appendChild(details);
                 productElement.appendChild(controls);
                 productList.appendChild(productElement);
             });
-
             calculateTotal();
             updateCartInfo();
-
             const searchBar = document.getElementById('search-bar');
             if (country === activeTab && searchBar?.applyFilters) {
                 setTimeout(() => searchBar.applyFilters(), 100);
@@ -814,10 +775,12 @@ function loadProducts(country) {
             alert('Nie można załadować danych z BLUGARIA.json');
         });
 }
+
 // Funkcja do otwierania/zamykania paska bocznego na mobile
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
+    if (!sidebar || !overlay) return;
 
     if (window.innerWidth <= 600) {
         sidebar.classList.toggle('visible');
@@ -827,10 +790,25 @@ function toggleSidebar() {
 
 // Zamknij pasek przy zmianie rozmiaru (jeśli wyjdziesz z mobile)
 window.addEventListener('resize', () => {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (!sidebar || !overlay) return;
+
     if (window.innerWidth > 600) {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
         sidebar.classList.remove('visible');
         overlay.classList.remove('visible');
     }
 });
+
+window.onload = async function() {
+    showInitialDialog();
+    createSidebar();
+    createSearchBar();
+    await loadProducts('romania');
+    switchTab('romania');
+    loadCartState();
+    updateBanner();
+    updateCartInfo();
+    const searchBar = document.getElementById('search-bar');
+    if (searchBar?.applyFilters) searchBar.applyFilters();
+};
