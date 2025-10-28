@@ -818,18 +818,10 @@ function loadProducts(country) {
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
-    const body = document.body;
 
     if (window.innerWidth <= 600) {
-        if (sidebar.classList.contains('visible')) {
-            sidebar.classList.remove('visible');
-            overlay.classList.remove('visible');
-            body.classList.remove('sidebar-open');
-        } else {
-            sidebar.classList.add('visible');
-            overlay.classList.add('visible');
-            body.classList.add('sidebar-open');
-        }
+        sidebar.classList.toggle('visible');
+        overlay.classList.toggle('visible');
     }
 }
 
@@ -838,21 +830,7 @@ window.addEventListener('resize', () => {
     if (window.innerWidth > 600) {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
-        const body = document.body;
         sidebar.classList.remove('visible');
         overlay.classList.remove('visible');
-        body.classList.remove('sidebar-open');
     }
 });
-window.onload = async function() {
-    showInitialDialog();
-    createSidebar();
-    createSearchBar();
-    await loadProducts('romania');
-    switchTab('romania');
-    loadCartState();
-    updateBanner();
-    updateCartInfo();
-    const searchBar = document.getElementById('search-bar');
-    if (searchBar?.applyFilters) searchBar.applyFilters();
-};
