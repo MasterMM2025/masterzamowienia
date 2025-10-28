@@ -6,7 +6,8 @@ body {
     background-color: #f5f5f5;
     position: relative;
 }
-/* 🔹 Powiększony panel koszyka */
+
+/* Powiększony panel koszyka */
 .cart-panel {
     position: fixed;
     top: 15px;
@@ -31,7 +32,8 @@ body {
     line-height: 1.4;
     margin: 4px 0;
 }
-/* 🔹 Ultra lekki navbar */
+
+/* Ultra lekki navbar */
 .navbar {
     background-color: #ffffff;
     border-bottom: 1px solid #eaeaea;
@@ -80,6 +82,7 @@ body {
     background-color: #000;
     border-radius: 2px;
 }
+
 /* Banner */
 .banner-container {
     display: flex;
@@ -94,6 +97,7 @@ body {
     height: auto;
     object-fit: contain;
 }
+
 /* Lista produktów */
 .product-list {
     margin-top: 20px;
@@ -302,6 +306,7 @@ button:active {
     transform: scale(0.95);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
 /* Responsywność dla telefonów */
 @media (max-width: 600px) {
     body {
@@ -405,7 +410,72 @@ button:active {
     #discount-panel {
         display: none;
     }
+
+    /* === UKRYWANIE PASKA BOCZNEGO NA MOBILE === */
+    #sidebar {
+        position: fixed;
+        left: -100px; /* Ukryty poza ekranem */
+        top: 0;
+        width: 100px;
+        height: 100%;
+        background-color: #f8f8f8;
+        padding: 15px;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        transition: left 0.3s ease;
+    }
+
+    #sidebar.visible {
+        left: 0;
+    }
+
+    #sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+    }
+
+    #sidebar-overlay.visible {
+        display: block;
+    }
+
+    #sidebar-toggle {
+        position: fixed;
+        left: 10px;
+        top: 10px;
+        width: 40px;
+        height: 40px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        cursor: pointer;
+        z-index: 1001;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    #sidebar-toggle:hover {
+        background-color: #f0f0f0;
+        transform: scale(1.05);
+    }
+
+    body.sidebar-open {
+        margin-left: 100px;
+        transition: margin-left 0.3s ease;
+    }
 }
+
 /* Dodatkowa responsywność dla bardzo małych ekranów */
 @media (max-width: 400px) {
     .nav-list {
@@ -470,6 +540,7 @@ button:active {
         font-size: 10px;
     }
 }
+
 @media (max-width: 600px) {
     .product img.enlarged {
         position: fixed;
@@ -482,14 +553,15 @@ button:active {
         background-color: rgba(0, 0, 0, 0.8);
     }
 }
+
 /* Poprawka dla konsystencji checkboxów w sidebarze */
 div[id="sidebar"] label {
-    display: block; /* Użycie block dla ścisłego ułożenia w pionie */
-    margin: 15px 0 5px; /* Odstęp między elementami */
+    display: block;
+    margin: 15px 0 5px;
     text-align: left;
     width: 100%;
     box-sizing: border-box;
-    padding-left: 5px; /* Przesunięcie zawartości do lewej */
+    padding-left: 5px;
 }
 div[id="sidebar"] input[type="text"],
 div[id="sidebar"] input[type="number"] {
@@ -501,7 +573,7 @@ div[id="sidebar"] input[type="number"] {
     margin-bottom: 10px;
 }
 div[id="sidebar"] input[type="checkbox"] {
-    margin-right: 10px; /* Odstęp między checkboxem a tekstem */
+    margin-right: 10px;
     margin-left: 0;
-    vertical-align: middle; /* Wyrównanie pionowe checkboxa */
+    vertical-align: middle;
 }
