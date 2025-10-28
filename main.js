@@ -5,11 +5,11 @@ let activeTab = 'romania';
 let categoryTotals = {
     romania: 0
 };
-let discountPercentage = 0; // Domyślnie 0%
-let customCashBackPercentage = 0; // Domyślnie 0%
-let customPrices = {}; // Obiekt przechowujący niestandardowe ceny
-let showCompetitorPrice = false; // Domyślnie cena konkurencji ukryta
-let showStockInfo = false; // Domyślnie stany magazynowe ukryte
+let discountPercentage = 0;
+let customCashBackPercentage = 0;
+let customPrices = {};
+let showCompetitorPrice = false;
+let showStockInfo = false;
 let gk_isXlsx = false;
 let gk_xlsxFileLookup = {};
 let gk_fileData = {};
@@ -43,14 +43,12 @@ function loadFileData(filename) {
     return gk_fileData[filename] || "";
 }
 
-// Funkcja obliczająca cenę z rabatem lub niestandardową ceną
 function applyDiscount(price, productIndex, country) {
     const parsedPrice = parseFloat(price) || 0;
     const customPrice = customPrices[`${country}-${productIndex}`];
     if (customPrice !== undefined && customPrice !== null && !isNaN(customPrice)) {
         return Number(parseFloat(customPrice).toFixed(2));
     }
-    // Nie stosuj rabatu, jeśli kategoria produktu to "M"
     const product = productsData[country] && productsData[country][productIndex];
     if (product && product.KATEGORIA === "M") {
         return Number(parsedPrice.toFixed(2));
@@ -58,14 +56,12 @@ function applyDiscount(price, productIndex, country) {
     return Number((parsedPrice * (1 - discountPercentage / 100)).toFixed(2));
 }
 
-// Funkcja resetująca niestandardową cenę
 function resetCustomPrice(country, index) {
     delete customPrices[`${country}-${index}`];
     updatePrices();
     saveCartState();
 }
 
-// Funkcja aktualizująca ceny na stronie - bez przeskakiwania
 function updatePrices() {
     const activeList = document.querySelector('.product-list.active');
     const scrollPosition = activeList ? activeList.scrollTop : 0;
@@ -85,7 +81,6 @@ function updatePrices() {
     }, 50);
 }
 
-// Funkcja zapisująca koszyk do pliku CSV w formacie "indeks,nazwa,ilosc,cena"
 function saveCartToCSV() {
     let csvContent = 'indeks,nazwa,ilosc,cena\n';
     productsData.romania.forEach((product, index) => {
@@ -105,7 +100,6 @@ function saveCartToCSV() {
     document.body.removeChild(link);
 }
 
-// Funkcja zapisująca koszyk do pliku XLS w formacie "indeks,nazwa,ilosc,cena"
 function saveCartToXLS() {
     const workbook = XLSX.utils.book_new();
     const ws_data = [['indeks', 'nazwa', 'ilosc', 'cena']];
@@ -122,55 +116,30 @@ function saveCartToXLS() {
     XLSX.writeFile(workbook, `order_${timestamp}.xlsx`);
 }
 
-// Funkcja wyświetlająca modalne okno początkowe
 function showInitialDialog() {
     const modal = document.createElement('div');
     modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1001;
-        overflow: auto;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5); display: flex; justify-content: center;
+        align-items: center; z-index: 1001; overflow: auto;
     `;
     const modalContent = document.createElement('div');
     modalContent.style.cssText = `
-        background-color: white;
-        padding: 15px;
-        border-radius: 5px;
-        width: 300px;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        color: #333;
-        margin-top: 20px;
+        background-color: white; padding: 15px; border-radius: 5px; width: 300px;
+        max-height: 80vh; overflow-y: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        font-family: Arial, sans-serif; font-size: 14px; color: #333; margin-top: 20px;
     `;
     const closeButton = document.createElement('button');
     closeButton.innerText = '×';
     closeButton.style.cssText = `
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 20px;
-        height: 20px;
-        border: none;
-        background-color: #ccc;
-        color: #fff;
-        border-radius: 50%;
-        font-size: 12px;
-        cursor: pointer;
-        transition: background-color 0.3s;
+        position: absolute; top: 10px; right: 10px; width: 20px; height: 20px;
+        border: none; background-color: #ccc; color: #fff; border-radius: 50%;
+        font-size: 12px; cursor: pointer;
     `;
     closeButton.onmouseover = () => closeButton.style.backgroundColor = '#999';
     closeButton.onmouseout = () => closeButton.style.backgroundColor = '#ccc';
     closeButton.onclick = () => document.body.removeChild(modal);
+
     const discountLabel = document.createElement('label');
     discountLabel.innerText = 'Discount (%): ';
     discountLabel.style.cssText = `display: block; margin: 10px 0 5px; font-weight: normal;`;
@@ -180,6 +149,7 @@ function showInitialDialog() {
     discountInput.style.cssText = `width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;`;
     discountInput.min = 0;
     discountInput.max = 100;
+
     const cashBackLabel = document.createElement('label');
     cashBackLabel.innerText = 'Cash Back (%): ';
     cashBackLabel.style.cssText = `display: block; margin: 10px 0 5px; font-weight: normal;`;
@@ -189,6 +159,7 @@ function showInitialDialog() {
     cashBackInput.style.cssText = `width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;`;
     cashBackInput.min = 0;
     cashBackInput.max = 100;
+
     const buttonContainer = document.createElement('div');
     buttonContainer.style.cssText = `margin-top: 15px; text-align: right;`;
     const saveButton = document.createElement('button');
@@ -206,12 +177,14 @@ function showInitialDialog() {
         updatePrices();
         document.body.removeChild(modal);
     };
+
     const cancelButton = document.createElement('button');
     cancelButton.innerText = 'Cancel';
     cancelButton.style.cssText = `padding: 8px 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;`;
     cancelButton.onmouseover = () => cancelButton.style.backgroundColor = '#5a6268';
     cancelButton.onmouseout = () => cancelButton.style.backgroundColor = '#6c757d';
     cancelButton.onclick = () => document.body.removeChild(modal);
+
     buttonContainer.appendChild(saveButton);
     buttonContainer.appendChild(cancelButton);
     modalContent.appendChild(closeButton);
@@ -224,21 +197,12 @@ function showInitialDialog() {
     document.body.appendChild(modal);
 }
 
-// Funkcja wyświetlająca okno dialogowe do zmiany ceny produktu
 function showPriceDialog(country, index, originalPrice) {
     const modal = document.createElement('div');
     modal.style.cssText = `
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100px;
-        height: 100%;
-        background-color: #f8f8f8;
-        padding: 15px;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        z-index: 1001;
-        font-family: Arial, sans-serif;
-        font-size: 12px;
+        position: fixed; left: 0; top: 0; width: 100px; height: 100%;
+        background-color: #f8f8f8; padding: 15px; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        z-index: 1001; font-family: Arial, sans-serif; font-size: 12px;
     `;
     const priceLabel = document.createElement('label');
     priceLabel.innerText = 'Custom Price (GBP):';
@@ -249,6 +213,7 @@ function showPriceDialog(country, index, originalPrice) {
     priceInput.value = customPrices[`${country}-${index}`] || originalPrice;
     priceInput.style.cssText = `width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;`;
     priceInput.min = 0;
+
     const saveButton = document.createElement('button');
     saveButton.innerText = 'Save';
     saveButton.style.cssText = `width: 100%; padding: 6px; margin-top: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;`;
@@ -265,12 +230,14 @@ function showPriceDialog(country, index, originalPrice) {
         }
         document.body.removeChild(modal);
     };
+
     const cancelButton = document.createElement('button');
     cancelButton.innerText = 'Cancel';
     cancelButton.style.cssText = `width: 100%; padding: 6px; margin-top: 5px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;`;
     cancelButton.onmouseover = () => cancelButton.style.backgroundColor = '#5a6268';
     cancelButton.onmouseout = () => cancelButton.style.backgroundColor = '#6c757d';
     cancelButton.onclick = () => document.body.removeChild(modal);
+
     modal.appendChild(priceLabel);
     modal.appendChild(priceInput);
     modal.appendChild(saveButton);
@@ -278,27 +245,20 @@ function showPriceDialog(country, index, originalPrice) {
     document.body.appendChild(modal);
 }
 
-// Tworzenie stałego panelu po lewej stronie
 function createSidebar() {
     const sidebar = document.createElement('div');
     sidebar.id = 'sidebar';
     sidebar.style.cssText = `
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100px;
-        height: 100%;
-        background-color: #f8f8f8;
-        padding: 15px;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        font-family: Arial, sans-serif;
-        font-size: 12px;
+        position: fixed; left: 0; top: 0; width: 100px; height: 100%;
+        background-color: #f8f8f8; padding: 15px; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        z-index: 1000; font-family: Arial, sans-serif; font-size: 12px;
     `;
+
     const discountInfo = document.createElement('div');
     discountInfo.id = 'discountInfo';
     discountInfo.style.cssText = `margin-bottom: 10px; font-weight: bold; color: #333;`;
     updateDiscountInfo();
+
     const discountLabel = document.createElement('label');
     discountLabel.innerText = 'Discount (%): ';
     discountLabel.style.cssText = `display: block; margin: 5px 0; font-weight: normal;`;
@@ -315,6 +275,7 @@ function createSidebar() {
         updatePrices();
         updateDiscountInfo();
     };
+
     const cashBackLabel = document.createElement('label');
     cashBackLabel.innerText = 'Cash Back (%): ';
     cashBackLabel.style.cssText = `display: block; margin: 10px 0 5px; font-weight: normal;`;
@@ -331,6 +292,7 @@ function createSidebar() {
         updatePrices();
         updateDiscountInfo();
     };
+
     const competitorPriceLabel = document.createElement('label');
     competitorPriceLabel.innerText = 'Show Competitor Price:';
     competitorPriceLabel.style.cssText = `display: block; margin: 5px 0 5px 2px; font-weight: normal;`;
@@ -346,6 +308,7 @@ function createSidebar() {
         if (activeTab !== 'cart') updatePrices();
     };
     competitorPriceLabel.appendChild(competitorPriceCheckbox);
+
     const stockInfoLabel = document.createElement('label');
     stockInfoLabel.innerText = 'Show Stock Info:';
     stockInfoLabel.style.cssText = `display: block; margin: 5px 0 5px 2px; font-weight: normal;`;
@@ -361,35 +324,27 @@ function createSidebar() {
         if (activeTab !== 'cart') updatePrices();
     };
     stockInfoLabel.appendChild(stockInfoCheckbox);
+
     sidebar.appendChild(discountInfo);
     sidebar.appendChild(discountLabel);
     sidebar.appendChild(discountInput);
     sidebar.appendChild(cashBackLabel);
     sidebar.appendChild(cashBackInput);
     sidebar.appendChild(competitorPriceLabel);
-    sidebar.appendChild(competitorPriceCheckbox);
     sidebar.appendChild(stockInfoLabel);
-    sidebar.appendChild(stockInfoCheckbox);
     document.body.appendChild(sidebar);
 }
 
-// Funkcja aktualizująca informację o rabatach w pasku bocznym
 function updateDiscountInfo() {
     const discountInfo = document.getElementById('discountInfo');
     if (discountInfo) {
         discountInfo.innerText = `Discount: ${discountPercentage}%, Cash Back: ${customCashBackPercentage}%`;
-    } else {
-        console.error("Element discountInfo not found!");
     }
 }
 
-// Funkcja aktualizująca baner
 function updateBanner() {
     const bannerImage = document.getElementById('banner-image');
-    if (!bannerImage) {
-        console.error("Banner image element not found!");
-        return;
-    }
+    if (!bannerImage) return;
     if (activeTab === 'romania') {
         bannerImage.src = 'https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/RUMUNIA BANER.jpg';
         bannerImage.style.display = 'block';
@@ -401,25 +356,17 @@ function updateBanner() {
     }
 }
 
-// Funkcja przełączania zakładek
 function switchTab(country) {
     activeTab = country;
-    console.log("Switching to tab:", country);
     document.querySelectorAll('.nav-link').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.product-list').forEach(list => list.classList.remove('active'));
     const selectedTab = document.querySelector(`[onclick="switchTab('${country}')"]`);
-    if (selectedTab) {
-        selectedTab.classList.add('active');
-    } else {
-        console.error("Tab not found:", country);
-    }
+    if (selectedTab) selectedTab.classList.add('active');
     const selectedList = document.getElementById(`product-list-${country}`);
-    if (selectedList) {
-        selectedList.classList.add('active');
-    } else {
-        console.error("Product list not found for:", country);
-    }
+    if (selectedList) selectedList.classList.add('active');
+
     window.scrollTo(0, 0);
+
     const searchBar = document.getElementById('search-bar');
     if (searchBar) {
         const searchInput = searchBar.querySelector('input');
@@ -433,11 +380,9 @@ function switchTab(country) {
             product.style.visibility = 'visible';
             product.style.position = 'relative';
         });
-        const applyFiltersFunc = searchBar.applyFilters;
-        if (typeof applyFiltersFunc === 'function') {
-            applyFiltersFunc();
-        }
+        if (searchBar.applyFilters) searchBar.applyFilters();
     }
+
     let saveButtons = document.getElementById('save-buttons');
     if (!saveButtons) {
         saveButtons = document.createElement('div');
@@ -452,22 +397,19 @@ function switchTab(country) {
             <button onclick="saveCartToXLS()" style="padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Zapisz do XLS</button>
         `;
     }
+
     updateBanner();
     if (country === 'cart') {
         updateCart();
-    } else if (productsData.romania && productsData.romania.length === 0) {
+    } else if (productsData.romania.length === 0) {
         loadProducts('romania');
     } else {
         calculateTotal();
         updateCartInfo();
     }
-    if (document.getElementById('product-list-cart')) {
-        updateCart();
-    }
     updateCartInfo();
 }
 
-// Funkcja aktualizowania informacji o koszyku
 function updateCartInfo() {
     let totalItems = 0;
     let totalValue = 0;
@@ -478,27 +420,23 @@ function updateCartInfo() {
         }
     });
     totalValue = Number(totalValue.toFixed(2));
-    document.getElementById('cart-info').innerText = `Products: ${totalItems} | Value: ${totalValue.toFixed(2)} GBP`;
+    const cartInfo = document.getElementById('cart-info');
+    if (cartInfo) cartInfo.innerText = `Products: ${totalItems} | Value: ${totalValue.toFixed(2)} GBP`;
     updateCashBackInfo(totalValue);
     saveCartState();
 }
 
-// Funkcja aktualizowania informacji o cashbacku
 function updateCashBackInfo(totalValue) {
     const cashBack = Number((totalValue * (customCashBackPercentage / 100)).toFixed(2));
-    document.getElementById('cash-back-info').innerText = `Cash Back: ${cashBack.toFixed(2)} GBP`;
+    const cashBackInfo = document.getElementById('cash-back-info');
+    if (cashBackInfo) cashBackInfo.innerText = `Cash Back: ${cashBack.toFixed(2)} GBP`;
 }
 
-// Funkcja zapisywania stanu koszyka
 function saveCartState() {
-    const cartState = {
-        productsData,
-        customPrices
-    };
+    const cartState = { productsData, customPrices };
     localStorage.setItem('cartState', JSON.stringify(cartState));
 }
 
-// Funkcja wczytywania stanu koszyka
 function loadCartState() {
     const savedData = localStorage.getItem('cartState');
     if (savedData) {
@@ -516,18 +454,14 @@ function loadCartState() {
     }
 }
 
-// Funkcja czyszczenia stanu koszyka
 function clearCartState() {
-    productsData.romania.forEach(product => {
-        product.quantity = 0;
-    });
+    productsData.romania.forEach(product => product.quantity = 0);
     customPrices = {};
     localStorage.removeItem('cartState');
     calculateTotal();
     updateCartInfo();
 }
 
-// Funkcja zmiany ilości produktu
 function changeQuantity(country, index, change) {
     const input = document.getElementById(`quantity-${country}-${index}`);
     let currentQuantity = parseInt(input.value) || 0;
@@ -542,29 +476,36 @@ function changeQuantity(country, index, change) {
     }
 }
 
-// Funkcja aktualizowania koszyka
 function updateCart() {
     const cartList = document.getElementById('product-list-cart');
-    if (!cartList) {
-        console.error("Cart list element not found!");
-        return;
-    }
+    if (!cartList) return;
     cartList.innerHTML = '';
     let totalCartValue = 0;
     productsData.romania.forEach((product, index) => {
         if (product.quantity > 0) {
-            const imageUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}.jpg`;
-            const productElement = document.createElement("div");
-            productElement.classList.add("product");
+            const baseUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}`;
+            const imageUrl = `${baseUrl}.jpg`;
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.onerror = () => {
+                img.src = `${baseUrl}.png`;
+                img.onerror = () => {
+                    img.src = 'https://via.placeholder.com/100x100/cccccc/666666?text=No+Photo';
+                };
+            };
+
             const originalPrice = parseFloat(product['CENA']) || 0;
             const discountedPrice = applyDiscount(originalPrice, index, 'romania');
             const itemValue = discountedPrice * parseFloat(product['OPAKOWANIE'] || 1) * product.quantity;
             const customPrice = customPrices[`romania-${index}`];
-            const priceDisplay = customPrice !== undefined && customPrice !== null && !isNaN(customPrice)
+            const priceDisplay = customPrice != null && !isNaN(customPrice)
                 ? `${discountedPrice.toFixed(2)} GBP (Custom)`
                 : `${discountedPrice.toFixed(2)} GBP (Original: ${originalPrice.toFixed(2)} GBP)`;
+
+            const productElement = document.createElement("div");
+            productElement.classList.add("product");
             productElement.innerHTML = `
-                <img src="${imageUrl}" alt="Photo" style="position: relative; z-index: 0;">
+                ${img.outerHTML}
                 <div class="product-details">
                     <div class="product-code">Index: ${product['INDEKS']}</div>
                     <div class="product-name">${product['NAZWA']} (Romania)</div>
@@ -582,11 +523,11 @@ function updateCart() {
             totalCartValue += itemValue;
         }
     });
-    document.getElementById("cart-total").innerText = `Cart value: ${totalCartValue.toFixed(2)} GBP`;
+    const cartTotal = document.getElementById("cart-total");
+    if (cartTotal) cartTotal.innerText = `Cart value: ${totalCartValue.toFixed(2)} GBP`;
     updateCartInfo();
 }
 
-// Funkcja usuwania produktu z koszyka
 function removeItem(country, index) {
     productsData.romania[index].quantity = 0;
     if (activeTab === 'cart') {
@@ -596,12 +537,10 @@ function removeItem(country, index) {
         updateCartInfo();
     }
     saveCartState();
-    if (document.getElementById(`quantity-romania-${index}`)) {
-        document.getElementById(`quantity-romania-${index}`).value = '0';
-    }
+    const input = document.getElementById(`quantity-romania-${index}`);
+    if (input) input.value = '0';
 }
 
-// Funkcja obliczania całkowitej wartości
 function calculateTotal() {
     let totalValue = 0;
     let categoryTotalsText = '';
@@ -616,11 +555,12 @@ function calculateTotal() {
         categoryTotalsText += `Romania: ${countryTotal.toFixed(2)} GBP\n`;
     }
     totalValue = categoryTotals.romania;
-    document.getElementById("category-totals").innerText = categoryTotalsText.trim();
-    document.getElementById("total-value").innerText = `Total order value: ${totalValue.toFixed(2)} GBP`;
+    const categoryTotalsEl = document.getElementById("category-totals");
+    if (categoryTotalsEl) categoryTotalsEl.innerText = categoryTotalsText.trim();
+    const totalValueEl = document.getElementById("total-value");
+    if (totalValueEl) totalValueEl.innerText = `Total order value: ${totalValue.toFixed(2)} GBP`;
 }
 
-// Funkcja wysyłki zamówienia
 function submitOrder() {
     const storeName = document.getElementById('store-name').value;
     const email = document.getElementById('email').value;
@@ -628,11 +568,9 @@ function submitOrder() {
         alert("Please fill in all fields.");
         return;
     }
-    let orderMessage = `Order for store: ${storeName}\n\n`;
+    let orderMessage = `Order for store: ${storeName}\n\nRomania:\nIndex\tName\tQuantity\tPrice\n`;
     let countryTotal = 0;
     let hasItems = false;
-    orderMessage += `Romania:\n`;
-    orderMessage += "Index\tName\tQuantity\tPrice\n";
     productsData.romania.forEach((product, index) => {
         if (product.quantity > 0) {
             hasItems = true;
@@ -641,78 +579,48 @@ function submitOrder() {
             countryTotal += price * parseFloat(product['OPAKOWANIE'] || 1) * product.quantity;
         }
     });
-    if (!hasItems) {
-        orderMessage += "No items in cart for this category.\n\n";
-    } else {
-        orderMessage += `Total for Romania: ${countryTotal.toFixed(2)} GBP\n\n`;
-    }
-    orderMessage += `Total order value: ${categoryTotals.romania.toFixed(2)} GBP\n`;
-    orderMessage += `Discount: ${discountPercentage}%\n`;
-    orderMessage += `Cash Back: ${customCashBackPercentage}%`;
+    if (!hasItems) orderMessage += "No items in cart.\n\n";
+    else orderMessage += `Total for Romania: ${countryTotal.toFixed(2)} GBP\n\n`;
+    orderMessage += `Total order value: ${categoryTotals.romania.toFixed(2)} GBP\nDiscount: ${discountPercentage}%\nCash Back: ${customCashBackPercentage}%`;
+
     const formData = new FormData();
     formData.append("email", email);
     formData.append("store-name", storeName);
     formData.append("message", orderMessage);
-    console.log("Sending order:", { email, storeName, orderMessage });
+
     fetch("https://formspree.io/f/xanwzpgj", {
         method: "POST",
         body: formData,
-        headers: {
-            'Accept': 'application/json'
-        }
+        headers: { 'Accept': 'application/json' }
     }).then(response => {
-        console.log("Server response:", response.status, response.statusText);
         if (response.ok) {
             alert("Order sent!");
             clearCartState();
         } else {
-            throw new Error("Server response error");
+            throw new Error("Server error");
         }
     }).catch(error => {
-        console.error("Error sending order:", error);
+        console.error("Error:", error);
         alert("Error sending order.");
     });
 }
 
-// Funkcja tworzenia paska wyszukiwania
 function createSearchBar() {
     const searchBarContainer = document.createElement('div');
     searchBarContainer.id = 'search-bar';
     searchBarContainer.style.cssText = `
-        width: 100%;
-        max-width: 900px;
-        margin: 10px auto 0;
-        padding: 10px;
-        background-color: #f1f1f1;
-        border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        z-index: 900;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        flex-wrap: wrap;
+        width: 100%; max-width: 900px; margin: 10px auto 0; padding: 10px;
+        background-color: #f1f1f1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        z-index: 900; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
     `;
+
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = 'Search products...';
-    searchInput.style.cssText = `
-        flex: 1;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-        box-sizing: border-box;
-        min-width: 150px;
-    `;
+    searchInput.style.cssText = `flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; min-width: 150px;`;
+
     const categoryFilter = document.createElement('select');
-    categoryFilter.style.cssText = `
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-        box-sizing: border-box;
-        min-width: 120px;
-    `;
+    categoryFilter.style.cssText = `padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; min-width: 120px;`;
     const filterOptions = [
         { value: '', text: 'All Categories' },
         { value: 'Słodycze', text: 'Słodycze' },
@@ -720,46 +628,31 @@ function createSearchBar() {
         { value: 'Dodatki do potraw', text: 'Dodatki do potraw' },
         { value: 'Przetwory owocowo-warzywne', text: 'Przetwory owocowo-warzywne' }
     ];
-    filterOptions.forEach(option => {
-        const optionElement = document.createElement('option');
-        optionElement.value = option.value;
-        optionElement.text = option.text;
-        categoryFilter.appendChild(optionElement);
+    filterOptions.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.text = opt.text;
+        categoryFilter.appendChild(option);
     });
+
     const rankingFilter = document.createElement('select');
     rankingFilter.id = 'ranking-filter';
-    rankingFilter.style.cssText = `
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-        box-sizing: border-box;
-        min-width: 150px;
-    `;
+    rankingFilter.style.cssText = `padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; min-width: 150px;`;
     const rankingOptions = [
         { value: '', text: 'Sort by Ranking' },
         { value: 'desc', text: 'Highest to Lowest' },
         { value: 'asc', text: 'Lowest to Highest' }
     ];
-    rankingOptions.forEach(option => {
-        const optionElement = document.createElement('option');
-        optionElement.value = option.value;
-        optionElement.text = option.text;
-        rankingFilter.appendChild(optionElement);
+    rankingOptions.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.text = opt.text;
+        rankingFilter.appendChild(option);
     });
+
     const clearFiltersButton = document.createElement('button');
     clearFiltersButton.innerText = 'Wyczyść filtry';
-    clearFiltersButton.style.cssText = `
-        padding: 8px 15px;
-        background-color: #6c757d;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        min-width: 100px;
-    `;
+    clearFiltersButton.style.cssText = `padding: 8px 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; min-width: 100px;`;
     clearFiltersButton.onmouseover = () => clearFiltersButton.style.backgroundColor = '#5a6268';
     clearFiltersButton.onmouseout = () => clearFiltersButton.style.backgroundColor = '#6c757d';
     clearFiltersButton.onclick = () => {
@@ -768,76 +661,66 @@ function createSearchBar() {
         rankingFilter.value = '';
         applyFilters();
     };
+
     searchBarContainer.appendChild(searchInput);
     searchBarContainer.appendChild(categoryFilter);
     searchBarContainer.appendChild(rankingFilter);
     searchBarContainer.appendChild(clearFiltersButton);
+
     const bannerContainer = document.querySelector('.banner-container');
-    if (bannerContainer) {
+    if (bannerContainer && bannerContainer.nextSibling) {
         bannerContainer.parentNode.insertBefore(searchBarContainer, bannerContainer.nextSibling);
     } else {
-        console.error("Banner container element not found for search bar placement!");
+        document.body.appendChild(searchBarContainer);
     }
+
     function applyFilters() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         const selectedCategory = categoryFilter.value;
         const sortOrder = rankingFilter.value;
         const productList = document.getElementById(`product-list-${activeTab}`);
-        if (!productList) {
-            console.error("Active product list not found!");
-            return;
-        }
+        if (!productList) return;
+
         let products = Array.from(productList.querySelectorAll('.product'));
-        console.log("Applying filters for", activeTab, "Products:", products.length, "Data:", productsData[activeTab] ? productsData[activeTab].length : 'undefined');
-        if (sortOrder && productsData[activeTab] && productsData[activeTab].length > 0) {
+        if (sortOrder && productsData[activeTab]) {
             products.sort((a, b) => {
-                const rankA = parseInt(productsData[activeTab][a.dataset.index]?.Ranking) || 0;
-                const rankB = parseInt(productsData[activeTab][b.dataset.index]?.Ranking) || 0;
-                console.log("Sorting:", a.dataset.index, rankA, b.dataset.index, rankB);
+                const rankA = parseInt(productsData[activeTab][a.dataset.index]?.RANKING) || 0;
+                const rankB = parseInt(productsData[activeTab][b.dataset.index]?.RANKING) || 0;
                 return sortOrder === 'desc' ? rankB - rankA : rankA - rankB;
             });
-            products.forEach(product => productList.appendChild(product));
+            products.forEach(p => productList.appendChild(p));
         }
+
         products.forEach(product => {
-            const productName = product.querySelector('.product-name')?.textContent.toLowerCase() || '';
-            const productCode = product.querySelector('.product-code')?.textContent.toLowerCase() || '';
-            const productIndex = product.dataset.index;
-            const productCategory = productsData[activeTab] && productsData[activeTab][productIndex]?.KATEGORIA?.toLowerCase() || '';
-            const nameWords = productName.split(/\s+/);
-            const normalizedSelectedCategory = selectedCategory.toLowerCase().replace(/-/g, ' ');
-            const normalizedProductCategory = productCategory.replace(/-/g, ' ');
-            console.log("Filter Debug - Index:", productIndex, "Category:", productCategory, "Selected:", selectedCategory);
-            const searchMatch = searchTerm === '' || searchTerm.split(/\s+/).every(term =>
-                nameWords.some(word => word.startsWith(term)) || productCode.includes(term)
-            );
-            const categoryMatch = selectedCategory === '' || normalizedProductCategory === normalizedSelectedCategory;
-            if (searchMatch && categoryMatch) {
-                product.style.visibility = 'visible';
-                product.style.position = 'relative';
-            } else {
-                product.style.visibility = 'hidden';
-                product.style.position = 'absolute';
-            }
+            const name = product.querySelector('.product-name')?.textContent.toLowerCase() || '';
+            const code = product.querySelector('.product-code')?.textContent.toLowerCase() || '';
+            const index = product.dataset.index;
+            const category = productsData[activeTab]?.[index]?.KATEGORIA?.toLowerCase() || '';
+            const nameWords = name.split(/\s+/);
+            const searchMatch = !searchTerm || searchTerm.split(/\s+/).every(t => nameWords.some(w => w.startsWith(t)) || code.includes(t));
+            const categoryMatch = !selectedCategory || category === selectedCategory.toLowerCase();
+            product.style.visibility = searchMatch && categoryMatch ? 'visible' : 'hidden';
+            product.style.position = searchMatch && categoryMatch ? 'relative' : 'absolute';
         });
     }
+
     searchInput.oninput = applyFilters;
     categoryFilter.onchange = applyFilters;
     rankingFilter.onchange = applyFilters;
     searchBarContainer.applyFilters = applyFilters;
 }
 
-// Funkcja ładowania produktów – POPRAWIONA WERSJA
+// POPRAWIONA FUNKCJA ŁADOWANIA PRODUKTÓW
 function loadProducts(country) {
     console.log("Loading data for:", country);
     const url = 'https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/BLUGARIA.json';
 
     return fetch(url)
         .then(response => {
-            if (!response.ok) throw new Error(`Błąd: ${response.status} - ${url}`);
+            if (!response.ok) throw new Error(`Błąd: ${response.status}`);
             return response.json();
         })
         .then(data => {
-            // Zachowaj ilości z koszyka
             if (productsData.romania.length === 0) {
                 productsData.romania = data.map(p => ({ ...p, quantity: 0 }));
             } else {
@@ -854,41 +737,27 @@ function loadProducts(country) {
 
             data.forEach((product, index) => {
                 const baseUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}`;
-                const jpgUrl = `${baseUrl}.jpg`;
-                const pngUrl = `${baseUrl}.png`;
-
-                // Tworzymy produkt ZAWSZE
-                const productElement = document.createElement('div');
-                productElement.className = 'product';
-                productElement.dataset.index = index;
-
-                // Obrazek
                 const img = document.createElement('img');
                 img.alt = 'Photo';
                 img.style.cssText = 'max-width: 100px; width: 100%; height: auto; position: relative; z-index: 0;';
-
-                // 1. Spróbuj .jpg
-                img.src = jpgUrl;
-
-                // 2. Jeśli .jpg nie istnieje → .png
+                img.src = `${baseUrl}.jpg`;
                 img.onerror = () => {
-                    console.log(`Brak .jpg: ${jpgUrl} → próbuję .png`);
-                    img.src = pngUrl;
-
-                    // 3. Jeśli .png też nie → placeholder
+                    img.src = `${baseUrl}.png`;
                     img.onerror = () => {
-                        console.warn(`Brak zdjęcia: ${pngUrl}`);
                         img.src = 'https://via.placeholder.com/100x100/cccccc/666666?text=No+Photo';
                     };
                 };
 
-                // Reszta produktu
                 const originalPrice = parseFloat(product['CENA']) || 0;
                 const discountedPrice = applyDiscount(originalPrice, index, country);
                 const customPrice = customPrices[`${country}-${index}`];
                 const priceDisplay = customPrice != null && !isNaN(customPrice)
                     ? `${discountedPrice.toFixed(2)} GBP (Custom)`
                     : `${discountedPrice.toFixed(2)} GBP (Original: ${originalPrice.toFixed(2)} GBP)`;
+
+                const productElement = document.createElement('div');
+                productElement.className = 'product';
+                productElement.dataset.index = index;
 
                 const details = document.createElement('div');
                 details.className = 'product-details';
@@ -909,7 +778,6 @@ function loadProducts(country) {
                     <button onclick="changeQuantity('${country}', ${index}, 1)">+</button>
                 `;
 
-                // Responsywność
                 if (window.innerWidth <= 600) {
                     img.onclick = () => img.classList.toggle('enlarged');
                 } else {
@@ -918,7 +786,6 @@ function loadProducts(country) {
                     details.style.fontSize = '14px';
                 }
 
-                // Złóż
                 productElement.appendChild(img);
                 productElement.appendChild(details);
                 productElement.appendChild(controls);
@@ -928,7 +795,6 @@ function loadProducts(country) {
             calculateTotal();
             updateCartInfo();
 
-            // Filtry
             const searchBar = document.getElementById('search-bar');
             if (country === activeTab && searchBar?.applyFilters) {
                 setTimeout(() => searchBar.applyFilters(), 100);
@@ -936,11 +802,10 @@ function loadProducts(country) {
         })
         .catch(error => {
             console.error('Błąd ładowania:', error);
-            alert('Nie można załadować danych. Sprawdź połączenie lub plik BLUGARIA.json');
+            alert('Nie można załadować danych z BLUGARIA.json');
         });
 }
 
-// Funkcja ładowania strony
 window.onload = async function() {
     showInitialDialog();
     createSidebar();
@@ -950,7 +815,6 @@ window.onload = async function() {
     loadCartState();
     updateBanner();
     updateCartInfo();
-    if (typeof applyFilters === 'function') {
-        applyFilters();
-    }
+    const searchBar = document.getElementById('search-bar');
+    if (searchBar?.applyFilters) applyFilters();
 };
