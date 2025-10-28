@@ -826,77 +826,118 @@ function createSearchBar() {
     searchBarContainer.applyFilters = applyFilters;
 }
 
-// Funkcja ładowania produktów
+// Funkcja ładowania produktów – POPRAWIONA WERSJA
 function loadProducts(country) {
     console.log("Loading data for:", country);
     const url = 'https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/BLUGARIA.json';
+
     return fetch(url)
         .then(response => {
-            console.log("Fetch response for", country, ":", response.status, "URL:", url);
-            if (!response.ok) {
-                throw new Error(`HTTP Error: ${response.status} - ${url}`);
-            }
+            if (!response.ok) throw new Error(`Błąd: ${response.status} - ${url}`);
             return response.json();
         })
         .then(data => {
-            console.log("Data loaded for", country, ":", data);
-            if (productsData.romania.length > 0) {
-                data = data.map((product, index) => {
-                    if (productsData.romania[index] && productsData.romania[index].quantity) {
-                        return { ...product, quantity: productsData.romania[index].quantity, dataset: { index } };
-                    }
-                    return { ...product, quantity: 0, dataset: { index } };
-                });
+            // Zachowaj ilości z koszyka
+            if (productsData.romania.length === 0) {
+                productsData.romania = data.map(p => ({ ...p, quantity: 0 }));
             } else {
-                productsData.romania = data.map((product, index) => ({ ...product, quantity: 0, dataset: { index } }));
+                data = data.map((p, i) => ({
+                    ...p,
+                    quantity: productsData.romania[i]?.quantity || 0
+                }));
+                productsData.romania = data;
             }
+
             const productList = document.getElementById(`product-list-${country}`);
-            if (!productList) {
-                console.error(`Product list not found for ${country}`);
-                return;
-            }
+            if (!productList) return;
             productList.innerHTML = '';
+
             data.forEach((product, index) => {
-    const baseUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}`;
-    const jpgUrl = `${baseUrl}.jpg`;
-    const pngUrl = `${baseUrl}.png`;
+                const baseUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}`;
+                const jpgUrl = `${baseUrl}.jpg`;
+                const pngUrl = `${baseUrl}.png`;
 
-    const img = document.createElement('img');
-    img.alt = "Photo";
-    img.style.cssText = 'max-width: 100px; width: 100%; height: auto; position: relative; z-index: 0;';
+                // Tworzymy produkt ZAWSZE
+                const productElement = document.createElement('div');
+                productElement.className = 'product';
+                productElement.dataset.index = index;
 
-    // 1. Spróbuj .jpg
-    img.src = jpgUrl;
+                // Obrazek
+                const img = document.createElement('img');
+                img.alt = 'Photo';
+                img.style.cssText = 'max-width: 100px; width: 100%; height: auto; position: relative; z-index: 0;';
 
-    // 2. Jeśli .jpg nie istnieje → spróbuj .png
-    img.onerror = () => {
-        console.log(`Brak .jpg: ${jpgUrl} → próbuję .png`);
-        img.src = pngUrl;
+                // 1. Spróbuj .jpg
+                img.src = jpgUrl;
 
-        // 3. Jeśli .png też nie istnieje → placeholder
-        img.onerror = () => {
-            console.warn(`Brak zdjęcia: ${pngUrl}`);
-            img.src = 'https://via.placeholder.com/100x100/cccccc/666666?text=No+Photo';
-        };
-    };
+                // 2. Jeśli .jpg nie istnieje → .png
+                img.onerror = () => {
+                    console.log(`Brak .jpg: ${jpgUrl} → próbuję .png`);
+                    img.src = pngUrl;
 
-    // Dodaj resztę produktu (już zawsze – nie pomijaj!)
-    const productElement = createProductElement(product, index, country, img); // przekazujemy img
-    productList.appendChild(productElement);
-});
-                imgTest.onerror = () => {
-                    console.warn(`Skipped index ${product['INDEKS']} due to missing photo: ${imageUrl}`);
+                    // 3. Jeśli .png też nie → placeholder
+                    img.onerror = () => {
+                        console.warn(`Brak zdjęcia: ${pngUrl}`);
+                        img.src = 'https://via.placeholder.com/100x100/cccccc/666666?text=No+Photo';
+                    };
                 };
+
+                // Reszta produktu
+                const originalPrice = parseFloat(product['CENA']) || 0;
+                const discountedPrice = applyDiscount(originalPrice, index, country);
+                const customPrice = customPrices[`${country}-${index}`];
+                const priceDisplay = customPrice != null && !isNaN(customPrice)
+                    ? `${discountedPrice.toFixed(2)} GBP (Custom)`
+                    : `${discountedPrice.toFixed(2)} GBP (Original: ${originalPrice.toFixed(2)} GBP)`;
+
+                const details = document.createElement('div');
+                details.className = 'product-details';
+                details.innerHTML = `
+                    <div class="product-code">Index: ${product['INDEKS']}</div>
+                    <div class="product-name">${product['NAZWA']}</div>
+                    <div class="pack-info">Pack: ${product['OPAKOWANIE']}</div>
+                    <div class="price">${priceDisplay}</div>
+                    <button onclick="showPriceDialog('${country}', ${index}, ${originalPrice})" style="margin:5px 5px 0 0; padding:5px 8px; font-size:12px;">Set Custom Price</button>
+                    <button onclick="resetCustomPrice('${country}', ${index})" style="margin:5px 0 0; padding:5px 8px; font-size:12px;">Reset</button>
+                `;
+
+                const controls = document.createElement('div');
+                controls.className = 'quantity-controls';
+                controls.innerHTML = `
+                    <button onclick="changeQuantity('${country}', ${index}, -1)">-</button>
+                    <input type="number" id="quantity-${country}-${index}" value="${product.quantity}" readonly>
+                    <button onclick="changeQuantity('${country}', ${index}, 1)">+</button>
+                `;
+
+                // Responsywność
+                if (window.innerWidth <= 600) {
+                    img.onclick = () => img.classList.toggle('enlarged');
+                } else {
+                    productElement.style.minWidth = '350px';
+                    productElement.style.padding = '10px';
+                    details.style.fontSize = '14px';
+                }
+
+                // Złóż
+                productElement.appendChild(img);
+                productElement.appendChild(details);
+                productElement.appendChild(controls);
+                productList.appendChild(productElement);
             });
+
             calculateTotal();
             updateCartInfo();
-            if (country === activeTab) {
-                if (typeof applyFilters === 'function') {
-                    setTimeout(() => applyFilters(), 100);
-                }
+
+            // Filtry
+            const searchBar = document.getElementById('search-bar');
+            if (country === activeTab && searchBar?.applyFilters) {
+                setTimeout(() => searchBar.applyFilters(), 100);
             }
         })
-        .catch(error => console.error(`Error loading data for ${country}:`, error));
+        .catch(error => {
+            console.error('Błąd ładowania:', error);
+            alert('Nie można załadować danych. Sprawdź połączenie lub plik BLUGARIA.json');
+        });
 }
 
 // Funkcja ładowania strony
