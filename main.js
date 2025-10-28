@@ -862,7 +862,7 @@ function loadProducts(country) {
                 productElement.dataset.index = index;
                 const originalPrice = parseFloat(product['CENA']) || 0;
                 const discountedPrice = applyDiscount(originalPrice, index, country);
-                const imageUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}.jpg`;
+                const imageUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/zdjecia-ukraina/${product['INDEKS']}.jpg`;
                 const imgTest = new Image();
                 imgTest.src = imageUrl;
                 imgTest.onload = () => {
