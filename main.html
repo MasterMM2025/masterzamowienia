@@ -9,6 +9,12 @@
     <script src="main.js" defer></script>
 </head>
 <body>
+<!-- Przycisk do otwierania paska bocznego (tylko mobile) -->
+<div id="sidebar-toggle" onclick="toggleSidebar()">☰</div>
+
+<!-- Tło przykrywające (overlay) -->
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 <div class="cart-panel">
     <div class="cart-icon" onclick="switchTab('cart')">🛒</div>
     <div class="cart-info" id="cart-info"></div>
