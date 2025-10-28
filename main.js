@@ -476,24 +476,16 @@ function changeQuantity(country, index, change) {
     }
 }
 
+// POPRAWIONA FUNKCJA UPDATECART – ZDJĘCIA W KOSZYKU DZIAŁAJĄ
 function updateCart() {
     const cartList = document.getElementById('product-list-cart');
     if (!cartList) return;
     cartList.innerHTML = '';
     let totalCartValue = 0;
+
     productsData.romania.forEach((product, index) => {
         if (product.quantity > 0) {
             const baseUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}`;
-            const imageUrl = `${baseUrl}.jpg`;
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.onerror = () => {
-                img.src = `${baseUrl}.png`;
-                img.onerror = () => {
-                    img.src = 'https://via.placeholder.com/100x100/cccccc/666666?text=No+Photo';
-                };
-            };
-
             const originalPrice = parseFloat(product['CENA']) || 0;
             const discountedPrice = applyDiscount(originalPrice, index, 'romania');
             const itemValue = discountedPrice * parseFloat(product['OPAKOWANIE'] || 1) * product.quantity;
@@ -502,10 +494,22 @@ function updateCart() {
                 ? `${discountedPrice.toFixed(2)} GBP (Custom)`
                 : `${discountedPrice.toFixed(2)} GBP (Original: ${originalPrice.toFixed(2)} GBP)`;
 
+            // Tworzymy element z img
             const productElement = document.createElement("div");
             productElement.classList.add("product");
+
+            // Tworzymy img z obsługą .jpg → .png → placeholder
+            const img = document.createElement('img');
+            img.style.cssText = 'position: relative; z-index: 0; max-width: 100px; width: 100%; height: auto;';
+            img.src = `${baseUrl}.jpg`;
+            img.onerror = () => {
+                img.src = `${baseUrl}.png`;
+                img.onerror = () => {
+                    img.src = 'https://via.placeholder.com/100x100/cccccc/666666?text=No+Photo';
+                };
+            };
+
             productElement.innerHTML = `
-                ${img.outerHTML}
                 <div class="product-details">
                     <div class="product-code">Index: ${product['INDEKS']}</div>
                     <div class="product-name">${product['NAZWA']} (Romania)</div>
@@ -519,10 +523,15 @@ function updateCart() {
                     <button class="remove-btn" onclick="removeItem('romania', ${index})">×</button>
                 </div>
             `;
+
+            // Wstawiamy img przed details
+            productElement.insertBefore(img, productElement.firstChild);
+
             cartList.appendChild(productElement);
             totalCartValue += itemValue;
         }
     });
+
     const cartTotal = document.getElementById("cart-total");
     if (cartTotal) cartTotal.innerText = `Cart value: ${totalCartValue.toFixed(2)} GBP`;
     updateCartInfo();
@@ -816,5 +825,5 @@ window.onload = async function() {
     updateBanner();
     updateCartInfo();
     const searchBar = document.getElementById('search-bar');
-    if (searchBar?.applyFilters) applyFilters();
+    if (searchBar?.applyFilters) searchBar.applyFilters();
 };
