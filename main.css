@@ -307,7 +307,22 @@ button:active {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Responsywność dla telefonów */
+/* === PASEK BOCZNY – DESKTOP: ZAWSZE WIDOCZNY === */
+#sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100px;
+    height: 100%;
+    background-color: #f8f8f8;
+    padding: 15px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+/* === PASEK BOCZNY – MOBILE: UKRYTY + WYSUWANY === */
 @media (max-width: 600px) {
     body {
         padding: 5px;
@@ -411,24 +426,14 @@ button:active {
         display: none;
     }
 
-    /* === UKRYWANIE PASKA BOCZNEGO NA MOBILE === */
+    /* UKRYWANIE PASKA BOCZNEGO NA MOBILE */
     #sidebar {
-        position: fixed;
-        left: -100px; /* Ukryty poza ekranem */
-        top: 0;
-        width: 100px;
-        height: 100%;
-        background-color: #f8f8f8;
-        padding: 15px;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-        transition: left 0.3s ease;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
     }
 
     #sidebar.visible {
-        left: 0;
+        transform: translateX(0);
     }
 
     #sidebar-overlay {
@@ -468,11 +473,6 @@ button:active {
     #sidebar-toggle:hover {
         background-color: #f0f0f0;
         transform: scale(1.05);
-    }
-
-    body.sidebar-open {
-        margin-left: 100px;
-        transition: margin-left 0.3s ease;
     }
 }
 
