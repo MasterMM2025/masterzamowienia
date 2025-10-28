@@ -857,58 +857,33 @@ function loadProducts(country) {
             }
             productList.innerHTML = '';
             data.forEach((product, index) => {
-                const productElement = document.createElement("div");
-                productElement.classList.add("product");
-                productElement.dataset.index = index;
-                const originalPrice = parseFloat(product['CENA']) || 0;
-                const discountedPrice = applyDiscount(originalPrice, index, country);
-                const imageUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}.jpg`;
-                const imgTest = new Image();
-                imgTest.src = imageUrl;
-                imgTest.onload = () => {
-                    const img = document.createElement('img');
-                    img.src = imageUrl;
-                    img.alt = "Photo";
-                    img.style.cssText = 'max-width: 100px; width: 100%; height: auto; position: relative; z-index: 0;';
-                    if (window.innerWidth <= 600) {
-                        img.onclick = function() {
-                            this.classList.toggle('enlarged');
-                        };
-                    } else {
-                        productElement.style.minWidth = '350px';
-                        productElement.style.padding = '10px';
-                        const details = productElement.querySelector('.product-details');
-                        if (details) {
-                            details.style.fontSize = '14px';
-                        }
-                    }
-                    productElement.appendChild(img);
-                    const details = document.createElement('div');
-                    details.classList.add('product-details');
-                    const customPrice = customPrices[`${country}-${index}`];
-                    const priceDisplay = customPrice !== undefined && customPrice !== null && !isNaN(customPrice)
-                        ? `${discountedPrice.toFixed(2)} GBP (Custom)`
-                        : `${discountedPrice.toFixed(2)} GBP (Original: ${originalPrice.toFixed(2)} GBP)`;
-                    let detailsHTML = `
-                        <div class="product-code">Index: ${product['INDEKS']}</div>
-                        <div class="product-name">${product['NAZWA']}</div>
-                        <div class="pack-info">Pack: ${product['OPAKOWANIE']}</div>
-                        <div class="price">${priceDisplay}</div>
-                        <button onclick="showPriceDialog('${country}', ${index}, ${originalPrice})" style="margin-top: 5px; margin-right: 5px; padding: 5px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Set Custom Price</button>
-                        <button onclick="resetCustomPrice('${country}', ${index})" style="margin-top: 5px; padding: 5px 10px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset Custom Price</button>
-                    `;
-                    details.innerHTML = detailsHTML;
-                    productElement.appendChild(details);
-                    const controls = document.createElement('div');
-                    controls.classList.add('quantity-controls');
-                    controls.innerHTML = `
-                        <button onclick="changeQuantity('${country}', ${index}, -1)">-</button>
-                        <input type="number" id="quantity-${country}-${index}" value="${product.quantity || 0}" readonly>
-                        <button onclick="changeQuantity('${country}', ${index}, 1)">+</button>
-                    `;
-                    productElement.appendChild(controls);
-                    productList.appendChild(productElement);
-                };
+    const baseUrl = `https://raw.githubusercontent.com/Marcin870119/masterzamowienia/main/rumunia/${product['INDEKS']}`;
+    const jpgUrl = `${baseUrl}.jpg`;
+    const pngUrl = `${baseUrl}.png`;
+
+    const img = document.createElement('img');
+    img.alt = "Photo";
+    img.style.cssText = 'max-width: 100px; width: 100%; height: auto; position: relative; z-index: 0;';
+
+    // 1. Spróbuj .jpg
+    img.src = jpgUrl;
+
+    // 2. Jeśli .jpg nie istnieje → spróbuj .png
+    img.onerror = () => {
+        console.log(`Brak .jpg: ${jpgUrl} → próbuję .png`);
+        img.src = pngUrl;
+
+        // 3. Jeśli .png też nie istnieje → placeholder
+        img.onerror = () => {
+            console.warn(`Brak zdjęcia: ${pngUrl}`);
+            img.src = 'https://via.placeholder.com/100x100/cccccc/666666?text=No+Photo';
+        };
+    };
+
+    // Dodaj resztę produktu (już zawsze – nie pomijaj!)
+    const productElement = createProductElement(product, index, country, img); // przekazujemy img
+    productList.appendChild(productElement);
+});
                 imgTest.onerror = () => {
                     console.warn(`Skipped index ${product['INDEKS']} due to missing photo: ${imageUrl}`);
                 };
