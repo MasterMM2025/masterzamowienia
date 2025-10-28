@@ -814,7 +814,36 @@ function loadProducts(country) {
             alert('Nie można załadować danych z BLUGARIA.json');
         });
 }
+// Funkcja do otwierania/zamykania paska bocznego na mobile
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const body = document.body;
 
+    if (window.innerWidth <= 600) {
+        if (sidebar.classList.contains('visible')) {
+            sidebar.classList.remove('visible');
+            overlay.classList.remove('visible');
+            body.classList.remove('sidebar-open');
+        } else {
+            sidebar.classList.add('visible');
+            overlay.classList.add('visible');
+            body.classList.add('sidebar-open');
+        }
+    }
+}
+
+// Zamknij pasek przy zmianie rozmiaru (jeśli wyjdziesz z mobile)
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 600) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const body = document.body;
+        sidebar.classList.remove('visible');
+        overlay.classList.remove('visible');
+        body.classList.remove('sidebar-open');
+    }
+});
 window.onload = async function() {
     showInitialDialog();
     createSidebar();
