@@ -494,9 +494,7 @@ stage.container().addEventListener('drop', (e) => {
         // ustawienia: w pełni edytowalne, tak jak wszystkie obiekty
         img.draggable(true);
         img.listening(true);
-            // NAPRAWKA: duży obraz nie blokuje kliknięć w inne elementy
-    img.hitGraphEnabled(false);     // KLUCZOWA LINIJKA
-    img.perfectDrawEnabled(false);  // dodatkowy bonus – szybsze rysowanie
+        
         layer.add(img);
         
         
@@ -1254,8 +1252,8 @@ if (textObj.height() < 28) textObj.height(28);
             const currency = page.settings.currency || 'euro';
             const priceText = currency === 'euro' ? `${p.CENA}€` : `£${p.CENA}`;
             const priceObj = new Konva.Text({
-                x: x + BW / 18,
-                y: y + 90 + (lines.length * settings.nameSize * 1.2),
+                x: x + BW / 18 + 45, // +30 px w prawo
+                y: y + 110 + (lines.length * settings.nameSize * 4.0), // przesunięcie o +20
                 text: priceText,
                 fontSize: settings.priceSize,
                 fill: '#000000',
@@ -1346,55 +1344,24 @@ if (textObj.height() < 28) textObj.height(28);
         if (oldBanner) oldBanner.destroy();
 
         Konva.Image.fromURL(page.settings.bannerUrl, img => {
-    const scale = Math.min(W / img.width(), 113 / img.height());
-    img.scaleX(scale);
-    img.scaleY(scale);
-    img.x(0);
-    img.y(0);
-    img.setAttr('name', 'banner');
-    img.draggable(true);
-    img.dragBoundFunc(pos => pos);
-
-    // KLUCZOWE TRZY LINIE – naprawiają problem z blokowaniem
-    img.listening(false);           // wyłączamy pełne nasłuchiwanie kliknięć
-    img.hitGraphEnabled(false);     // dodatkowo wyłączamy hit region
-    img.perfectDrawEnabled(false);  // przyspiesza rysowanie dużych obrazów
-
-    layer.add(img);
-
-    img.setAttrs({
-        width: img.width(),
-        height: img.height()
-    });
-
-    // Bonus: żeby łatwiej było zaznaczyć baner – dodajemy mały "uchwyt" w prawym dolnym rogu
-    const handle = new Konva.Circle({
-        x: W - 30,
-        y: H - 30,
-        radius: 12,
-        fill: '#007cba',
-        opacity: 0.7,
-        listening: true,
-        name: 'bannerHandle'
-    });
-    handle.on('click tap', () => {
-        const page = pages.find(p => p.layer === layer);
-        if (page) {
-            page.selectedNodes = [img];
-            page.transformer.nodes([img]);
-            page.layer.find('.selectionOutline').forEach(n => n.destroy());
-            highlightSelection();
-            showFloatingButtons();
-            page.layer.batchDraw();
-            page.transformerLayer.batchDraw();
-        }
-    });
-    layer.add(handle);
-    handle.moveToTop();
-
-    layer.batchDraw();
-    transformerLayer.batchDraw();
-});
+            const scale = Math.min(W / img.width(), 113 / img.height());
+            img.scaleX(scale);
+            img.scaleY(scale);
+            img.x(0);
+            img.y(0);
+            img.setAttr('name', 'banner');
+            img.draggable(true);
+            img.dragBoundFunc(pos => pos);
+            layer.add(img);
+            img.listening(true);
+            img.setAttrs({
+                width: img.width(),
+                height: img.height()
+            });
+            img.moveToBottom();
+            layer.batchDraw();
+            transformerLayer.batchDraw();
+        });
     } else {
         layer.batchDraw();
         transformerLayer.batchDraw();
@@ -1720,8 +1687,7 @@ window.importImagesFromFiles = function() {
                   clone.scaleY(scale);
                   clone.draggable(true);
                   clone.dragBoundFunc(pos => pos);
-                  clone.hitGraphEnabled(false);
-                  clone.perfectDrawEnabled(false);       
+  
                   page.layer.add(clone);
                   clone.listening(true);
   
@@ -1749,12 +1715,7 @@ window.importImagesFromFiles = function() {
     alert(`Zaimportowano ${matched.length} zdjęć`);
 };
 async function removeBackgroundAI(imgData, cb) {
-    const session = await ort.InferenceSession.create(
-  "https://huggingface.co/MasterMM2025/u2net/resolve/main/u2net.onnx"
-);
-
-
-
+    const session = await ort.InferenceSession.create("/models/u2net.onnx");
 
     const img = new Image();
     img.src = imgData;
