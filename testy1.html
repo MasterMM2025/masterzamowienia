@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kreator PDF – Katalog produktów</title>
+  <link rel="stylesheet" href="kreator.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- DODANO: QUILL.JS -->
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- GÓRNY PASEK -->
+  <div class="header-bar">
+    <div class="header-left">
+      <div class="header-logo">Kreator</div>
+      <div class="header-title">Katalog produktów</div>
+    </div>
+    <div class="header-center">
+      <button class="header-btn active"><i class="fas fa-edit"></i> Edytuj</button>
+      <button class="header-btn"><i class="fas fa-eye"></i> Podgląd</button>
+    </div>
+    <div class="header-right">
+      <button class="share-btn"><i class="fas fa-share-alt"></i> Udostępnij</button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR Z IKONAMI -->
+  <div class="sidebar">
+    <!-- Dodaj tekst -->
+    <div class="sidebar-item" title="Dodaj tekst">
+      <i class="fas fa-plus"></i>
+      <i class="fas fa-font"></i>
+      <span class="sidebar-label">Dodaj tekst</span>
+    </div>
+
+    <!-- Dodaj zdjęcia -->
+    <div class="sidebar-item" title="Dodaj zdjęcia">
+      <i class="fas fa-plus"></i>
+      <i class="fas fa-images"></i>
+      <span class="sidebar-label">Dodaj zdjęcia</span>
+    </div>
+    <!-- Import PSD -->
+<div class="sidebar-item" title="Import PSD">
+  <i class="fas fa-file-image"></i>
+  <span class="sidebar-label">Import PSD</span>
+</div>
+
+    <!-- Dodaj element -->
+<div class="sidebar-item" id="addElementBtn" title="Dodaj element">
+  <i class="fas fa-plus"></i>
+  <i class="fas fa-shapes"></i>
+  <span class="sidebar-label">Dodaj element</span>
+</div>
+
+    <!-- Elementy zapisane -->
+    <div class="sidebar-item" title="Elementy zapisane">
+      <i class="fas fa-save"></i>
+      <span class="sidebar-label">Elementy zapisane</span>
+    </div>
+
+    <!-- Przesyłanie danych -->
+    <div class="sidebar-item" title="Przesyłanie danych">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <span class="sidebar-label">Przesyłanie danych</span>
+    </div>
+
+    <!-- Separator -->
+    <div class="sidebar-separator"></div>
+
+    <!-- Opcje PDF (istniejące) -->
+    <div class="sidebar-item" title="Opcje PDF">
+      <i class="fas fa-cog"></i>
+      <span class="sidebar-label">Opcje PDF</span>
+    </div>
+    <div class="sidebar-item" title="Kod EAN">
+      <i class="fas fa-barcode"></i>
+      <span class="sidebar-label">Kod EAN</span>
+    </div>
+    <div class="sidebar-item" title="Cena">
+      <i class="fas fa-euro-sign"></i>
+      <span class="sidebar-label">Cena</span>
+    </div>
+    <div class="sidebar-item" title="Ramki">
+      <i class="fas fa-border-all"></i>
+      <span class="sidebar-label">Ramki</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="improved-panel">
+      <div class="panel-header">
+        <h2 class="panel-title"><i class="fas fa-upload"></i> Import i ustawienia</h2>
+      </div>
+
+      <!-- EXCEL -->
+      <div class="import-row">
+        <div class="file-section">
+          <label for="excelFile" class="file-label-wrapper">
+            <span id="fileLabel">Nie wybrano pliku</span>
+            <input type="file" id="excelFile" accept=".xls,.xlsx,.csv">
+          </label>
+        </div>
+        <button class="btn-primary" id="importExcelBtn"><i class="fas fa-file-excel"></i> Importuj Excel</button>
+      </div>
+
+      <!-- UPLOAD KARTY -->
+      <div class="upload-grid">
+        <!-- BANER -->
+        <div class="upload-card">
+          <div class="upload-zone" id="bannerUpload">
+            <i class="fas fa-image"></i>
+            <p>Przeciągnij baner tutaj lub <span class="file-label" onclick="document.getElementById('bannerFileInput').click()">kliknij, aby wybrać</span></p>
+            <input type="file" id="bannerFileInput" accept="image/*">
+          </div>
+          <div id="bannerPreview" class="upload-preview"></div>
+        </div>
+
+        <!-- TŁO -->
+        <div class="upload-card">
+          <div class="upload-zone" id="backgroundUpload">
+            <i class="fas fa-fill-drip"></i>
+            <p>Przeciągnij tło tutaj lub <span class="file-label" onclick="document.getElementById('backgroundFileInput').click()">kliknij, aby wybrać</span></p>
+            <input type="file" id="backgroundFileInput" accept="image/*">
+          </div>
+          <div id="backgroundPreview" class="upload-preview"></div>
+        </div>
+
+        <!-- OKŁADKA -->
+        <div class="upload-card">
+          <div class="upload-zone" id="coverUpload">
+            <i class="fas fa-book"></i>
+            <p>Przeciągnij okładkę tutaj lub <span class="file-label" onclick="document.getElementById('coverFileInput').click()">kliknij, aby wybrać</span></p>
+            <input type="file" id="coverFileInput" accept="image/*">
+          </div>
+          <div id="coverPreview" class="upload-preview"></div>
+        </div>
+
+        <!-- ZDJĘCIA -->
+        <div class="upload-card">
+          <div class="upload-zone" id="uploadArea">
+            <i class="fas fa-images"></i>
+            <p>Przeciągnij zdjęcia tutaj lub <span class="file-label" onclick="document.getElementById('imageInput').click()">kliknij, aby wybrać</span></p>
+            <input type="file" id="imageInput" accept="image/*" multiple>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMPORT ZDJĘĆ -->
+      <div class="import-row" style="margin-top: 12px; justify-content: center;">
+        <button class="btn-primary" id="importImagesBtn"><i class="fas fa-upload"></i> Importuj zdjęcia</button>
+      </div>
+
+      <!-- PDF BUTTONS – TYLKO Generuj PDF i Ustawienia katalogu -->
+      <div class="pdf-buttons" style="margin-top: 20px;">
+        <button id="pdfButton" class="btn-primary" disabled><i class="fas fa-file-pdf"></i> Generuj PDF</button>
+        <button id="catalogSettingsBtn" class="btn-primary"><i class="fas fa-cog"></i> Ustawienia katalogu</button>
+      </div>
+    </div>
+
+    <div id="pagesContainer"></div>
+  </div>
+
+  <!-- UNDO/REDO BUTTONS -->
+  <div id="undoRedoControls" style="position:fixed;top:80px;right:20px;z-index:10000;display:flex;gap:8px;">
+    <button id="undoBtn" title="Cofnij (Ctrl+Z)" style="background:#fff;padding:8px 12px;border:1px solid #ddd;border-radius:6px;cursor:pointer;opacity:0.5;" disabled>
+      <i class="fas fa-undo"></i>
+    </button>
+    <button id="redoBtn" title="Przywróć (Ctrl+Y)" style="background:#fff;padding:8px 12px;border:1px solid #ddd;border-radius:6px;cursor:pointer;opacity:0.5;" disabled>
+      <i class="fas fa-redo"></i>
+    </button>
+  </div>
+
+ <!-- ====================== BIBLIOTEKI ZEWNĘTRZNE ====================== -->
+
+<!-- PSD.js — DZIAŁAJĄCA wersja (lokalna), NIE CDN -->
+<script src="psd.min.js"></script>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>window.jsPDF = window.jspdf.jsPDF;</script>
+
+<!-- XLSX -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- Konva -->
+<script src="https://unpkg.com/konva@9/konva.min.js"></script>
+
+<!-- Fabric -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+
+<!-- JsBarcode -->
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+<!-- ONNX Runtime -->
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+
+<!-- Quill -->
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+
+<!-- ====================== TWOJE SKRYPTY ====================== -->
+<script src="modulklasyczny.js"></script>
+<script src="importdanych.js"></script>
+<script src="baner.js"></script>
+<script src="importdanych-1.js"></script>
+<script src="edycja.js"></script>
+<script src="edycja-1.js"></script>
+<script src="okladka.js"></script>
+<script src="dodajstrone.js"></script>
+<script src="eangenerator.js"></script>
+
+
+  <!-- INICJALIZACJA -->
+  <script>
+    // === PREVIEW UPLOADÓW (POD KARTĄ) ===
+    function setupUpload(zoneId, inputId, previewId) {
+      const zone = document.getElementById(zoneId);
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+
+      if (!zone || !input || !preview) return;
+
+      input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) {
+          preview.innerHTML = '';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.cssText = 'max-width:100%; max-height:80px; margin-top:8px; border-radius:6px;';
+          preview.innerHTML = '';
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      ['dragover', 'dragenter'].forEach(e => zone.addEventListener(e, ev => ev.preventDefault()));
+      zone.addEventListener('drop', ev => {
+        ev.preventDefault();
+        const file = ev.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          input.files = dt.files;
+          input.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+
+    // === INICJALIZACJA ===
+    document.addEventListener('DOMContentLoaded', () => {
+      setupUpload('bannerUpload', 'bannerFileInput', 'bannerPreview');
+      setupUpload('backgroundUpload', 'backgroundFileInput', 'backgroundPreview');
+      setupUpload('coverUpload', 'coverFileInput', 'coverPreview');
+
+      const importExcelBtn = document.getElementById('importExcelBtn');
+      const importImagesBtn = document.getElementById('importImagesBtn');
+      const pdfButton = document.getElementById('pdfButton');
+      const catalogSettingsBtn = document.getElementById('catalogSettingsBtn');
+
+      if (importExcelBtn) {
+        importExcelBtn.onclick = () => {
+          if (typeof importExcelMultiPage === 'function') importExcelMultiPage();
+          else console.error('importExcelMultiPage nie załadowane');
+        };
+      }
+
+      if (importImagesBtn) {
+        importImagesBtn.onclick = () => {
+          if (typeof importImagesFromFiles === 'function') importImagesFromFiles();
+          else console.error('importImagesFromFiles nie załadowane');
+        };
+      }
+
+      if (pdfButton) {
+        pdfButton.onclick = () => {
+          if (typeof generatePDF === 'function') generatePDF();
+          else console.error('generatePDF nie załadowane');
+        };
+      }
+
+      const excelFile = document.getElementById('excelFile');
+      if (excelFile) {
+        excelFile.addEventListener('change', () => {
+          const name = excelFile.files[0]?.name || 'Nie wybrano pliku';
+          const label = document.getElementById('fileLabel');
+          if (label) label.textContent = name;
+        });
+      }
+
+      window.addEventListener('excelImported', () => {
+        if (pdfButton) pdfButton.disabled = false;
+      });
+
+      if (typeof Quill === 'undefined') {
+        console.error('QUILL.JS NIE ZAŁADOWANY!');
+      } else {
+        console.log('QUILL.JS DZIAŁA!');
+      }
+    });
+  </script>
+
+</body>
+</html>
