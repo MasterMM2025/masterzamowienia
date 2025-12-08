@@ -436,7 +436,7 @@ const page = {
     settings: {
         nameSize: 12,
         indexSize: 14,
-        priceSize: 18,
+        priceSize: 24,
         fontFamily: 'Arial',
         textColor: '#000000',
         bannerUrl: null,
@@ -1228,19 +1228,23 @@ if (textObj.height() < 28) textObj.height(28);
 
         // === INDEKS ===
         const indexObj = new Konva.Text({
-            x: x + BW / 4.1,
-            y: y + BH - 80,
-            text: `Indeks: ${p.INDEKS || '-'}`,
-            fontSize: settings.indexSize,
-            fill: settings.textColor,
-            fontFamily: settings.fontFamily,
-            align: 'center',
-            width: BW - 20,
-            draggable: true,
-            listening: true,
-            isProductText: true,
-            isIndex: true
-        });
+    x: x + BW / 1.70,
+    y: y + BH - 80,
+    text: `Indeks: ${p.INDEKS || '-'}`,
+    fontSize: settings.indexSize,
+    fill: settings.textColor,
+    fontFamily: settings.fontFamily,
+    align: 'center',
+    width: 100,         // <<< szerokość pozwala zmieścić cały tekst w 1 linii
+    wrap: 'none',       // <<< ZAKAZ łamania linii — najważniejsze
+    draggable: true,
+    listening: true,
+    isProductText: true,
+    isIndex: true
+});
+
+
+
         indexObj.dragBoundFunc(pos => pos);
         layer.add(indexObj);
         if (indexObj.height() < 26) indexObj.height(26);
@@ -1248,30 +1252,38 @@ if (textObj.height() < 28) textObj.height(28);
         enableTextEditing(indexObj, page);
 
         // === CENA ===
-        if (showCena && p.CENA) {
-            const currency = page.settings.currency || 'euro';
-            const priceText = currency === 'euro' ? `${p.CENA}€` : `£${p.CENA}`;
-            const priceObj = new Konva.Text({
-                x: x + BW / 18 + 45, // +30 px w prawo
-                y: y + 110 + (lines.length * settings.nameSize * 4.0), // przesunięcie o +20
-                text: priceText,
-                fontSize: settings.priceSize,
-                fill: '#000000',
-                fontFamily: settings.fontFamily,
-                align: 'center',
-                width: BW - 20,
-                draggable: true,
-                listening: true,
-                isProductText: true,
-                isPrice: true,
-                slotIndex: i
-            });
-            priceObj.dragBoundFunc(pos => pos);
-            layer.add(priceObj);
-            priceObj.moveToTop();
-            enableTextEditing(priceObj, page);
+if (showCena && p.CENA) {
 
-        }
+    const currency = page.settings.currency || 'euro';
+    const priceText = currency === 'euro' ? `${p.CENA}€` : `£${p.CENA}`;
+
+    // 🔥 dynamiczna wysokość nazwy
+    const nameHeight = textObj.height();
+
+    // 🔥 stały odstęp poniżej nazwy
+    const priceY = y + 25 + nameHeight + 120;
+
+    const priceObj = new Konva.Text({
+        x: x + BW / 1 - 150,
+        y: priceY,
+        text: priceText,
+        fontSize: settings.priceSize,
+        fill: '#000000',
+        fontFamily: settings.fontFamily,
+        align: 'center',
+        width: 80,
+        draggable: true,
+        listening: true,
+        isProductText: true,
+        isPrice: true,
+        slotIndex: i
+    });
+
+    layer.add(priceObj);
+    priceObj.moveToTop();
+    enableTextEditing(priceObj, page);
+}
+
 
         // === ZDJĘCIE ===
         if (page.slotObjects[i]) {
