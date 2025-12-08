@@ -12,7 +12,7 @@ let currentPage = null;
 const DEFAULT_STYLES = {
   nameStyle: { size: 12, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, underline: false },
   indexStyle: { size: 14, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, underline: false },
-  priceStyle: { size: 18, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, underline: false },
+  priceStyle: { size: 24, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, underline: false },
   ratingStyle: { size: 12, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, underline: false },
 
 };
@@ -572,11 +572,23 @@ targetPages.forEach(p => {
 
     // Aktualizacja waluty
     let priceText = obj.text().replace(/[^\d.,]/g, '').trim();
-    const symbol =
-      selectedCurrency === 'EUR' ? '€' :
-      selectedCurrency === 'GBP' ? '£' :
-      'zł';
-    obj.text(symbol + ' ' + priceText);
+
+let finalPrice = '';
+
+if (selectedCurrency === 'EUR') {
+    // EURO → 2.45 €
+    finalPrice = priceText + ' €';
+
+} else if (selectedCurrency === 'GBP') {
+    // FUNT → £2.45
+    finalPrice = '£' + priceText;
+
+} else {
+    // PLN → 2.45 zł (lub inny format, jeśli wolisz)
+    finalPrice = priceText + ' zł';
+}
+
+obj.text(finalPrice);
   }
 
   if (isRating) {
