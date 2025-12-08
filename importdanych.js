@@ -1750,7 +1750,7 @@ window.importImagesFromFiles = function() {
 };
 async function removeBackgroundAI(imgData, cb) {
     const session = await ort.InferenceSession.create(
-  "https://mastermm2025.github.io/masterzamowienia/models/u2net.onnx"
+  "https://github.com/MasterMM2025/masterzamowienia/releases/download/v1.0/u2net.onnx"
 );
 
 
