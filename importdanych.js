@@ -15,9 +15,28 @@ let ML = 14 + PAGE_MARGIN;  // lewy margines strony + 15mm
 let MT = 140 + PAGE_MARGIN; // górny margines strony + 15mm
 let MB = 28 + PAGE_MARGIN;  // dolny margines strony + 15mm
 let COLS = 2, ROWS = 3, GAP = 6;
+let LAYOUT_MODE = "6"; // domyślny układ
+let BW_dynamic = 0;   // GLOBALNIE – dostępne wszędzie
+let BH_dynamic = 0;   // GLOBALNIE – dostępne wszędzie
+// =============================
+// PREDEFINIOWANE USTAWIENIA
+// =============================
+const layout6Defaults = {
+    COLS: 2,
+    ROWS: 3,
+    GAP: 6,
+    MT: 140,
+    scaleBox: 1
+};
 
-const BW = (W - ML * 2 - GAP) / COLS;
-const BH = (H - MT - MB - GAP * (ROWS - 1)) / ROWS;
+const layout8Defaults = {
+    COLS: 2,
+    ROWS: 4,
+    GAP: 5,     // bardzo mały odstęp 5 mm
+    MT: 200,    // opuszczamy siatkę niżej
+    scaleBox: 1.00   // boxy 25% mniejsze
+};
+
 
 // === GLOBALNY CLIPBOARD + PASTE MODE ===
 window.globalClipboard = null;
@@ -100,11 +119,101 @@ function createZoomSlider() {
         }
     });
 }
+async function chooseLayout() {
+    return new Promise(resolve => {
+        const box = document.createElement("div");
+        box.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            z-index: 999999;
+            width: 280px;
+            text-align: center;
+            font-family: Arial;
+        `;
+
+        box.innerHTML = `
+            <h3>Wybierz układ strony</h3>
+            <button id="layout6" style="margin:10px;padding:10px 20px;">6 produktów</button>
+            <button id="layout8" style="margin:10px;padding:10px 20px;">8 produktów</button>
+        `;
+
+        document.body.appendChild(box);
+
+        document.getElementById("layout6").onclick = () => {
+            document.body.removeChild(box);
+            resolve("layout6");
+        };
+
+        document.getElementById("layout8").onclick = () => {
+            document.body.removeChild(box);
+            resolve("layout8");
+        };
+    });
+}
 
 // === IMPORT EXCEL (POMIJA NAGŁÓWEK) ===
 window.importExcelMultiPage = async function() {
     const file = document.getElementById('excelFile')?.files[0];
     if (!file) return alert('Wybierz plik Excel!');
+    // 1️⃣ Zapytaj użytkownika o układ strony
+// 1️⃣ Zapytaj użytkownika o układ strony
+LAYOUT_MODE = await chooseLayout();
+let scaleBox = 1;
+
+// -------------------------------
+// USTAWIENIA DLA LAYOUTU 6
+// -------------------------------
+if (LAYOUT_MODE === "layout6") {
+    COLS = layout6Defaults.COLS;
+    ROWS = layout6Defaults.ROWS;
+    GAP  = layout6Defaults.GAP;
+    MT   = layout6Defaults.MT;
+    scaleBox = layout6Defaults.scaleBox;
+}
+
+// -------------------------------
+// USTAWIENIA DLA LAYOUTU 8
+// -------------------------------
+if (LAYOUT_MODE === "layout8") {
+    COLS = layout8Defaults.COLS;
+    ROWS = layout8Defaults.ROWS;
+    GAP  = layout8Defaults.GAP;
+    MT   = layout8Defaults.MT;
+    scaleBox = layout8Defaults.scaleBox;
+}
+
+
+
+
+if (LAYOUT_MODE === "layout6") {
+    COLS = 2;
+    ROWS = 3;
+}
+// =====================================================
+//   PRZELICZANIE ROZMIARÓW BOXÓW *PO* WYBORZE LAYOUTU
+// =====================================================
+
+// standardowe parametry
+// -------------------------------
+// PRZELICZENIE ROZMIARÓW BOXÓW
+// -------------------------------
+BW = (W - ML * 2 - GAP * (COLS - 1)) / COLS;
+BH = (H - MT - MB - GAP * (ROWS - 1)) / ROWS;
+
+BW_dynamic = BW * scaleBox;
+BH_dynamic = BH * scaleBox;
+
+
+
+// 3️⃣ Przelicz wysokość i szerokość boxów
+const perPage = COLS * ROWS;
+
 
     try {
         const data = await file.arrayBuffer();
@@ -1162,8 +1271,37 @@ function drawPage(page) {
 
     products.forEach((p, i) => {
         // oryginalna pozycja
-const xRaw = ML + (i % COLS) * (BW + GAP);
-const y = MT + Math.floor(i / COLS) * (BH + GAP);
+// oryginalna pozycja
+const xRaw = ML + (i % COLS) * ((BW_dynamic) + GAP);
+
+let y = MT + Math.floor(i / COLS) * (BH_dynamic + GAP);
+
+
+// 🔥 PRZESUNIĘCIE WSZYSTKICH BOXÓW TYLKO DLA LAYOUT 8
+let boxOffsetY = 0;
+if (LAYOUT_MODE === "layout8") {
+    boxOffsetY = -38;   // ustaw na -60, -80, -120 jeśli chcesz wyżej
+}
+
+y += boxOffsetY;
+
+
+// 🔥 Domyślne odstępy dla layoutu 6
+let nameOffsetY = 25;
+let imageOffsetY = 100;
+let priceOffsetExtra = 120;
+let indexOffsetY = -80;
+
+// 🔥 Specjalne ustawienia dla layoutu 8 (mniejsze boksy)
+// 🔥 Specjalne ustawienia dla layoutu 8 (mniejsze boksy)
+if (LAYOUT_MODE === "layout8") {
+    nameOffsetY = 10;        
+    priceOffsetExtra = 70;    
+    indexOffsetY = -80;       
+    imageOffsetY = 80;        // ⭐ tu ustawiamy bazę dla zdjęć
+}
+
+
 
 // 🔥 PRZESUNIĘCIE WSZYSTKICH PUDEŁEK W LEWO / PRAWO
 const LEFT_OFFSET = -40; // ← tu zmieniasz przesunięcie
@@ -1173,8 +1311,8 @@ const x = xRaw + LEFT_OFFSET;
         // === PUDEŁKO ===
         const box = new Konva.Rect({
             x, y,
-            width: BW,
-            height: BH,
+            width: BW_dynamic,
+            height: BH_dynamic,
             fill: '#fff',
             stroke: '#ccc',
             strokeWidth: 2,
@@ -1200,7 +1338,8 @@ const x = xRaw + LEFT_OFFSET;
         const name = p.NAZWA || 'Pusty';
         const maxWidth = BW - 20;
         const lines = splitTextIntoLines(name, maxWidth, settings.nameSize, settings.fontFamily);
-        let nameTop = y + 25;
+        let nameTop = y + nameOffsetY;
+
 
         const fullName = p.NAZWA || 'Pusty';
 const textObj = new Konva.Text({
@@ -1211,7 +1350,7 @@ const textObj = new Konva.Text({
     fill: settings.textColor,
     fontFamily: settings.fontFamily,
     align: 'center',
-    width: BW - 20,
+    width: BW_dynamic - 20,
     wrap: 'word',
     draggable: true,
     listening: true,
@@ -1229,7 +1368,7 @@ if (textObj.height() < 28) textObj.height(28);
         // === INDEKS ===
         const indexObj = new Konva.Text({
     x: x + BW / 1.70,
-    y: y + BH - 80,
+    y: y + BH + indexOffsetY,
     text: `Indeks: ${p.INDEKS || '-'}`,
     fontSize: settings.indexSize,
     fill: settings.textColor,
@@ -1261,10 +1400,11 @@ if (showCena && p.CENA) {
     const nameHeight = textObj.height();
 
     // 🔥 stały odstęp poniżej nazwy
-    const priceY = y + 25 + nameHeight + 120;
+    const priceY = y + nameOffsetY + nameHeight + priceOffsetExtra;
+
 
     const priceObj = new Konva.Text({
-        x: x + BW / 1 - 150,
+        x: x + BW_dynamic / 1 - 150,
         y: priceY,
         text: priceText,
         fontSize: settings.priceSize,
@@ -1286,26 +1426,43 @@ if (showCena && p.CENA) {
 
 
         // === ZDJĘCIE ===
-        if (page.slotObjects[i]) {
-            const img = page.slotObjects[i];
-            const scale = Math.min((BW * 0.45 - 20) / img.width(), (BH * 0.6) / img.height(), 1);
-            const imgTop = y + 100 + (lines.length * settings.nameSize * 1.2);
-            img.x(x + 20);
-            img.y(imgTop);
-            img.scaleX(scale);
-            img.scaleY(scale);
-            img.draggable(true);
-            img.dragBoundFunc(pos => pos);
-            layer.add(img);
-            img.listening(true);
-            img.setAttrs({
-                width: img.width(),
-                height: img.height(),
-                isProductImage: true,
-                slotIndex: i
-            });
-        
-        }
+if (page.slotObjects[i]) {
+    const img = page.slotObjects[i];
+
+    // 🔥 DODATKOWE PRZESUNIĘCIE ZDJĘCIA TYLKO DLA LAYOUT 8
+    let imageExtraY = 0;
+    if (LAYOUT_MODE === "layout8") {
+        imageExtraY = -160;   // 🔼 podniesienie zdjęcia (zmień na -20, -60 itd.)
+    }
+
+    const scale = Math.min(
+        (BW * 0.45 - 20) / img.width(),
+        (BH * 0.6) / img.height(),
+        1
+    );
+
+    const imgTop =
+        y + imageOffsetY + (lines.length * settings.nameSize * 1.2);
+
+    img.x(x + 20);
+    img.y(imgTop + imageExtraY);   // 🔥 KLUCZOWA ZMIANA
+
+    img.scaleX(scale);
+    img.scaleY(scale);
+    img.draggable(true);
+    img.dragBoundFunc(pos => pos);
+
+    layer.add(img);
+
+    img.listening(true);
+    img.setAttrs({
+        width: img.width(),
+        height: img.height(),
+        isProductImage: true,
+        slotIndex: i
+    });
+}
+
 
         // === KOD KRESKOWY ===
         if (showEan && p['KOD EAN'] && !page.barcodeObjects[i]) {
@@ -1319,7 +1476,7 @@ if (showCena && p.CENA) {
 
         const bw = 140;
         const bh = 40;
-        const bx = x + (BW - bw) / 1 - 35;
+        const bx = x + (BW_dynamic - bw) / 1 - 35;
         const by = y + BH - bh - 20;
 
         const scaleFactor = 0.65;
@@ -1689,8 +1846,15 @@ window.importImagesFromFiles = function() {
                       1
                   );
   
-                  const x = ML + (slotIndex % COLS) * (BW + GAP) + 20;
-                  const y = MT + Math.floor(slotIndex / COLS) * (BH + GAP) + 100;
+                  let x = ML + (slotIndex % COLS) * (BW + GAP) + 20;
+let y = MT + Math.floor(slotIndex / COLS) * (BH + GAP) + 100;
+
+// 🔥 przesunięcie zdjęć tylko w layout8
+if (LAYOUT_MODE === "layout8") {
+    y -= 80;   // podnieś zdjęcie wyżej
+    x += 5;    // opcjonalnie wyrównanie w poziomie
+}
+
   
                   const clone = img.clone();
                   clone.x(x);
