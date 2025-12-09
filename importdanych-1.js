@@ -5,6 +5,49 @@
 
 Konva.listenClickTap = true;
 let currentFolder = "PHOTO PNG/BANNERS";
+// === AUTO-CROP — usuwa przezroczyste marginesy z PNG ===
+function autoCropKonvaImage(kImg) {
+    const w = kImg.width();
+    const h = kImg.height();
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(kImg.image(), 0, 0);
+    const imgData = ctx.getImageData(0, 0, w, h).data;
+
+    let minX = w, minY = h, maxX = 0, maxY = 0;
+
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            const i = (y * w + x) * 4;
+            const alpha = imgData[i + 3];
+            if (alpha > 10) {
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+            }
+        }
+    }
+
+    const cropWidth = maxX - minX;
+    const cropHeight = maxY - minY;
+
+    kImg.crop({
+        x: minX,
+        y: minY,
+        width: cropWidth,
+        height: cropHeight
+    });
+
+    kImg.width(cropWidth);
+    kImg.height(cropHeight);
+}
+
+
 // ⭐⭐⭐ DODAJ TO TUTAJ ⭐⭐⭐
 function markAsEditable(node) {
     node.setAttr("isEditable", true);
@@ -164,7 +207,11 @@ function openImagePickerAtPosition(page, x, y) {
     const reader = new FileReader();
     reader.onload = ev => {
       Konva.Image.fromURL(ev.target.result, img => {
-  const s = Math.min(180 / img.width(), 180 / img.height(), 1);
+  // 🔥 duże zdjęcie, ładne jak w Canva
+const maxSize = 500;  // możesz zmienić na 800 jeśli chcesz
+
+const s = Math.min(maxSize / img.width(), maxSize / img.height(), 1);
+
 
   img.setAttrs({
     x: x - img.width() * s / 2,
@@ -174,15 +221,12 @@ function openImagePickerAtPosition(page, x, y) {
     draggable: true,
     listening: true,
 
-    // 🔥 KLUCZOWE FLAGI – dzięki nim obraz ZAWSZE będzie edytowalny
-    isSidebarImage: true,
-    isDesignElement: true,
-    isEditable: true,
-    isSelectable: true,
-    isDraggable: true,
-    name: "design-image"
-});
+    // 🔥 ULTRA WAŻNE — pozwala odróżnić od tła/koloru strony
+    isSidebarImage: true
+    
+    
 
+  });
 
   page.layer.add(img);
   page.layer.batchDraw();
@@ -770,8 +814,15 @@ function enablePageClickForImage(url) {
       if (!pos) return;
 
       Konva.Image.fromURL(url, kImg => {
-  const maxWidth = 300;
-  const scale = Math.min(maxWidth / kImg.width(), 1);
+  // 🔥 USTAWIAMY ROZMIAR TYLKO DLA OBRAZÓW Z FIREBASE
+const maxSize = 250; // możesz zmienić np. 200–300 px
+
+const scale = Math.min(
+  maxSize / kImg.width(),
+  maxSize / kImg.height(),
+  1
+);
+
 
   kImg.setAttrs({
     x: pos.x - (kImg.width() * scale) / 2,
@@ -791,6 +842,12 @@ markAsEditable(kImg);
 
 
   page.layer.add(kImg);
+  // 🔥 Normalizacja obrazu — ramka będzie zawsze blisko
+kImg.width(kImg.width() * kImg.scaleX());
+kImg.height(kImg.height() * kImg.scaleY());
+kImg.scaleX(1);
+kImg.scaleY(1);
+
   page.layer.batchDraw();
 });
 
@@ -858,6 +915,12 @@ markAsEditable(kImg);
 
 
                 page.layer.add(kImg);
+                // 🔥 Normalizacja obrazu — ramka będzie zawsze blisko
+kImg.width(kImg.width() * kImg.scaleX());
+kImg.height(kImg.height() * kImg.scaleY());
+kImg.scaleX(1);
+kImg.scaleY(1);
+
                 page.layer.batchDraw();
             });
         }
