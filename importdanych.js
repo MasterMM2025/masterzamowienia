@@ -1,6 +1,43 @@
 // ======================================================================== //
 // importdanych.js – PEŁNY, KONVA.JS – GLOBALNY CLIPBOARD + JEDNORAZOWE WKLEJANIE + PEŁNE DRAG & DROP + MENU WARSTW + USUWANIE STRON + CANVA-STYLE EDYTOR
 // ======================================================================== //
+
+// ==========================================================
+//  WYLICZANIE CYFRY KONTROLNEJ DLA EAN-13
+// ==========================================================
+function calculateEAN13Checksum(code12) {
+    const digits = code12.split("").map(Number);
+    let sum = 0;
+
+    for (let i = 0; i < 12; i++) {
+        sum += digits[i] * (i % 2 === 0 ? 1 : 3);
+    }
+
+    return (10 - (sum % 10)) % 10;
+}
+
+// ==========================================================
+//  NORMALIZACJA EAN → zawsze 13 cyfr
+// ==========================================================
+function normalizeEAN(eanRaw) {
+    let ean = eanRaw.replace(/\D/g, "");
+
+    if (ean.length === 7) ean = ean.padStart(12, "0");
+
+    if (ean.length === 8) return "00000" + ean;
+
+    if (ean.length < 12) ean = ean.padStart(12, "0");
+
+    if (ean.length === 12) {
+        return ean + calculateEAN13Checksum(ean);
+    }
+
+    if (ean.length === 13) return ean;
+
+    ean = ean.slice(0, 12);
+    return ean + calculateEAN13Checksum(ean);
+}
+
 window.isEditingText = false;
 
 let allProducts = [], pages = [];
@@ -1466,7 +1503,12 @@ if (page.slotObjects[i]) {
 
         // === KOD KRESKOWY ===
         if (showEan && p['KOD EAN'] && !page.barcodeObjects[i]) {
-            window.generateBarcode(p['KOD EAN'], data => {
+
+    // ⭐⭐⭐ NORMALIZACJA KODU EAN ⭐⭐⭐
+    const cleanEAN = normalizeEAN(p['KOD EAN']);  
+
+    window.generateBarcode(cleanEAN, data => {
+
     if (!data) return;
     Konva.Image.fromURL(data, img => {
 
