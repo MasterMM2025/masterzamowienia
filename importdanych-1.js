@@ -5,6 +5,12 @@
 
 Konva.listenClickTap = true;
 let currentFolder = "PHOTO PNG/BANNERS";
+// ===== LAZY LOAD ELEMENTÓW (SIDEBAR) =====
+let elementsAllItems = [];
+let elementsRenderIndex = 0;
+const ELEMENTS_BATCH_SIZE = 8; // ← zmień na 6 jeśli chcesz
+let elementsLoading = false;
+
 // === AUTO-CROP — usuwa przezroczyste marginesy z PNG ===
 function autoCropKonvaImage(kImg) {
     const w = kImg.width();
@@ -207,6 +213,8 @@ function openImagePickerAtPosition(page, x, y) {
     const reader = new FileReader();
     reader.onload = ev => {
       Konva.Image.fromURL(ev.target.result, img => {
+        img.setAttr("originalSrc", ev.target.result);
+
   // 🔥 duże zdjęcie, ładne jak w Canva
 const maxSize = 500;  // możesz zmienić na 800 jeśli chcesz
 
@@ -736,27 +744,28 @@ async function loadFirebaseFolder(folderPath) {
   const folderRef = ref(storage, folderPath);
   const result = await listAll(folderRef);
 
-  // Jeśli w międzyczasie kliknięto inny folder → ANULUJ
-  if (mySession !== loadSessionId) return;
+// Jeśli w międzyczasie kliknięto inny folder → ANULUJ
+if (mySession !== loadSessionId) return;
 
-  container.innerHTML = "";
+container.innerHTML = "";
 
-  const lazyObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      const img = entry.target;
+const lazyObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    const img = entry.target;
 
-      // Sesja przerwana? Nie ładuj dalej.
-      if (mySession !== loadSessionId) {
-        lazyObserver.unobserve(img);
-        return;
-      }
+    // Sesja przerwana? Nie ładuj dalej.
+    if (mySession !== loadSessionId) {
+      lazyObserver.unobserve(img);
+      return;
+    }
 
-      if (entry.isIntersecting && !img.src) {
-        img.src = img.dataset.src;
-        lazyObserver.unobserve(img);
-      }
-    });
+    if (entry.isIntersecting && !img.src) {
+      img.src = img.dataset.src;
+      lazyObserver.unobserve(img);
+    }
   });
+});
+
 
   for (const item of result.items) {
 
@@ -814,6 +823,8 @@ function enablePageClickForImage(url) {
       if (!pos) return;
 
       Konva.Image.fromURL(url, kImg => {
+        kImg.setAttr("originalSrc", url);
+
   // 🔥 USTAWIAMY ROZMIAR TYLKO DLA OBRAZÓW Z FIREBASE
 const maxSize = 250; // możesz zmienić np. 200–300 px
 
@@ -893,6 +904,8 @@ document.addEventListener("drop", e => {
             const y = e.clientY - rect.top;
 
             Konva.Image.fromURL(url, kImg => {
+              kImg.setAttr("originalSrc", url);
+
                 const maxWidth = 300;
                 const scale = Math.min(maxWidth / kImg.width(), 1);
 
@@ -925,6 +938,15 @@ kImg.scaleY(1);
             });
         }
     });
+});
+elementsPanel.addEventListener('scroll', () => {
+  const nearBottom =
+    elementsPanel.scrollTop + elementsPanel.clientHeight >=
+    elementsPanel.scrollHeight - 120;
+
+  if (nearBottom) {
+    renderNextElementsBatch();
+  }
 });
 
 console.log("importdanych-1.js – GOTOWY! Ikony jak w Canva, zero błędów, pięknie!");
