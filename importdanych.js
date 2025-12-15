@@ -1,6 +1,36 @@
 // ======================================================================== //
 // importdanych.js – PEŁNY, KONVA.JS – GLOBALNY CLIPBOARD + JEDNORAZOWE WKLEJANIE + PEŁNE DRAG & DROP + MENU WARSTW + USUWANIE STRON + CANVA-STYLE EDYTOR
 // ======================================================================== //
+window.pages = window.pages || [];
+const TNZ_BADGE_URL =
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FTNZ.png?alt=media";
+
+window.TNZ_IMAGE = null;
+const COUNTRY_RO_BADGE_URL =
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FRumunia.png?alt=media";
+
+window.COUNTRY_RO_IMAGE = null;
+
+const COUNTRY_UA_BADGE_URL =
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FUkraina.png?alt=media";
+
+window.COUNTRY_UA_IMAGE = null;
+const COUNTRY_LT_BADGE_URL =
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FLitwa.png?alt=media";
+
+window.COUNTRY_LT_IMAGE = null;
+
+const COUNTRY_BG_BADGE_URL =
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FBulgaria.png?alt=media";
+
+window.COUNTRY_BG_IMAGE = null;
+
+const COUNTRY_PL_BADGE_URL =
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FPolska.png?alt=media";
+
+window.COUNTRY_PL_IMAGE = null;
+
+
 
 // ==========================================================
 //  WYLICZANIE CYFRY KONTROLNEJ DLA EAN-13
@@ -20,6 +50,8 @@ function calculateEAN13Checksum(code12) {
 //  NORMALIZACJA EAN → zawsze 13 cyfr
 // ==========================================================
 function normalizeEAN(eanRaw) {
+    // ================================
+
     let ean = eanRaw.replace(/\D/g, "");
 
     if (ean.length === 7) ean = ean.padStart(12, "0");
@@ -37,13 +69,198 @@ function normalizeEAN(eanRaw) {
     ean = ean.slice(0, 12);
     return ean + calculateEAN13Checksum(ean);
 }
+// ================================
+// LOADER TNZ (CANVA STYLE – TYLKO RAZ)
+// ================================
+function loadTNZImage(cb) {
+    if (window.TNZ_IMAGE) {
+        cb(window.TNZ_IMAGE);
+        return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+        window.TNZ_IMAGE = img;
+        cb(img);
+    };
+
+    img.onerror = (e) => {
+        console.error("❌ Błąd ładowania TNZ:", TNZ_BADGE_URL, e);
+    };
+
+    img.src = TNZ_BADGE_URL;
+}
+// ================================
+// LOADER COUNTRY RO (CANVA STYLE – TYLKO RAZ)
+// ================================
+function loadCountryROImage(cb) {
+    if (window.COUNTRY_RO_IMAGE) {
+        cb(window.COUNTRY_RO_IMAGE);
+        return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+        window.COUNTRY_RO_IMAGE = img;
+        cb(img);
+    };
+
+    img.onerror = (e) => {
+        console.error("❌ Błąd ładowania Rumunia:", COUNTRY_RO_BADGE_URL, e);
+    };
+
+    img.src = COUNTRY_RO_BADGE_URL;
+}
+// ================================
+// LOADER COUNTRY UA (CANVA STYLE – TYLKO RAZ)
+// ================================
+function loadCountryUAImage(cb) {
+    if (window.COUNTRY_UA_IMAGE) {
+        cb(window.COUNTRY_UA_IMAGE);
+        return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+        window.COUNTRY_UA_IMAGE = img;
+        cb(img);
+    };
+
+    img.onerror = (e) => {
+        console.error("❌ Błąd ładowania Ukraina:", COUNTRY_UA_BADGE_URL, e);
+    };
+
+    img.src = COUNTRY_UA_BADGE_URL;
+}
+
+
+
 
 window.isEditingText = false;
 
-let allProducts = [], pages = [];
+window.allProducts = [];
+window.pages = [];
+
+// ================================
+// LOADER COUNTRY LT (CANVA STYLE – TYLKO RAZ)
+// ================================
+function loadCountryLTImage(cb) {
+    if (window.COUNTRY_LT_IMAGE) {
+        cb(window.COUNTRY_LT_IMAGE);
+        return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+        window.COUNTRY_LT_IMAGE = img;
+        cb(img);
+    };
+
+    img.onerror = (e) => {
+        console.error("❌ Błąd ładowania Litwa:", COUNTRY_LT_BADGE_URL, e);
+    };
+
+    img.src = COUNTRY_LT_BADGE_URL;
+}
+// ================================
+// LOADER COUNTRY BG (CANVA STYLE – TYLKO RAZ)
+// ================================
+function loadCountryBGImage(cb) {
+    if (window.COUNTRY_BG_IMAGE) {
+        cb(window.COUNTRY_BG_IMAGE);
+        return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+        window.COUNTRY_BG_IMAGE = img;
+        cb(img);
+    };
+
+    img.onerror = (e) => {
+        console.error("❌ Błąd ładowania Bulgaria:", COUNTRY_BG_BADGE_URL, e);
+    };
+
+    img.src = COUNTRY_BG_BADGE_URL;
+}
+
+// ================================
+// LOADER COUNTRY PL (CANVA STYLE – TYLKO RAZ)
+// ================================
+function loadCountryPLImage(cb) {
+    if (window.COUNTRY_PL_IMAGE) {
+        cb(window.COUNTRY_PL_IMAGE);
+        return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+        window.COUNTRY_PL_IMAGE = img;
+        cb(img);
+    };
+
+    img.onerror = (e) => {
+        console.error("❌ Błąd ładowania Polska:", COUNTRY_PL_BADGE_URL, e);
+    };
+
+    img.src = COUNTRY_PL_BADGE_URL;
+}
+
+
+// =====================================================
+// CENTRALNA FUNKCJA BUDOWANIA STRON Z PRODUKTÓW
+// =====================================================
+window.buildPagesFromProducts = function (products) {
+
+    if (!Array.isArray(products) || products.length === 0) {
+        console.warn("Brak produktów – nie buduję stron");
+        return;
+    }
+
+    // 🔥 usuń stare strony
+    pages.forEach(p => {
+        p.stage?.destroy();
+        p.container?.remove();
+    });
+
+    pages.length = 0;
+    document.getElementById('pagesContainer').innerHTML = '';
+
+    const perPage = COLS * ROWS;
+
+    for (let i = 0; i < products.length; i += perPage) {
+        const prods = products.slice(i, i + perPage);
+        createPage(Math.floor(i / perPage) + 1, prods);
+    }
+
+    console.log("📄 Strony przebudowane. Layout:", window.LAYOUT_MODE);
+};
+
+
 const MM_TO_PX = 3.78;
 const PAGE_MARGIN = 15 * MM_TO_PX;  // ~56.7px
-
+// ================================
+// CANVA STYLE SHADOW – DLA ZDJĘĆ
+// ================================
+const IMAGE_SHADOW = {
+    color: 'rgba(0,0,0,0.25)',
+    blur: 18,
+    offsetX: 0,
+    offsetY: 8,
+    opacity: 1
+};
 
 window.W = 794 + PAGE_MARGIN * 2;
 window.H = 1123 + PAGE_MARGIN * 2;
@@ -52,7 +269,7 @@ let ML = 14 + PAGE_MARGIN;  // lewy margines strony + 15mm
 let MT = 140 + PAGE_MARGIN; // górny margines strony + 15mm
 let MB = 28 + PAGE_MARGIN;  // dolny margines strony + 15mm
 let COLS = 2, ROWS = 3, GAP = 6;
-let LAYOUT_MODE = "6"; // domyślny układ
+window.LAYOUT_MODE = "layout6"; // DOMYŚLNY LAYOUT
 let BW_dynamic = 0;   // GLOBALNIE – dostępne wszędzie
 let BH_dynamic = 0;   // GLOBALNIE – dostępne wszędzie
 // =============================
@@ -156,57 +373,23 @@ function createZoomSlider() {
         }
     });
 }
-async function chooseLayout() {
-    return new Promise(resolve => {
-        const box = document.createElement("div");
-        box.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-            z-index: 999999;
-            width: 280px;
-            text-align: center;
-            font-family: Arial;
-        `;
 
-        box.innerHTML = `
-            <h3>Wybierz układ strony</h3>
-            <button id="layout6" style="margin:10px;padding:10px 20px;">6 produktów</button>
-            <button id="layout8" style="margin:10px;padding:10px 20px;">8 produktów</button>
-        `;
-
-        document.body.appendChild(box);
-
-        document.getElementById("layout6").onclick = () => {
-            document.body.removeChild(box);
-            resolve("layout6");
-        };
-
-        document.getElementById("layout8").onclick = () => {
-            document.body.removeChild(box);
-            resolve("layout8");
-        };
-    });
-}
 
 // === IMPORT EXCEL (POMIJA NAGŁÓWEK) ===
 window.importExcelMultiPage = async function() {
     const file = document.getElementById('excelFile')?.files[0];
     if (!file) return alert('Wybierz plik Excel!');
-    // 1️⃣ Zapytaj użytkownika o układ strony
-// 1️⃣ Zapytaj użytkownika o układ strony
-LAYOUT_MODE = await chooseLayout();
-let scaleBox = 1;
+
+    // 🔥 WYBÓR LAYOUTU – Z edytor.js
+    window.LAYOUT_MODE = await window.openLayoutSelector();
+
+
+    let scaleBox = 1;
 
 // -------------------------------
 // USTAWIENIA DLA LAYOUTU 6
 // -------------------------------
-if (LAYOUT_MODE === "layout6") {
+if (window.LAYOUT_MODE === "layout6") {
     COLS = layout6Defaults.COLS;
     ROWS = layout6Defaults.ROWS;
     GAP  = layout6Defaults.GAP;
@@ -217,7 +400,7 @@ if (LAYOUT_MODE === "layout6") {
 // -------------------------------
 // USTAWIENIA DLA LAYOUTU 8
 // -------------------------------
-if (LAYOUT_MODE === "layout8") {
+if (window.LAYOUT_MODE === "layout8") {
     COLS = layout8Defaults.COLS;
     ROWS = layout8Defaults.ROWS;
     GAP  = layout8Defaults.GAP;
@@ -228,7 +411,7 @@ if (LAYOUT_MODE === "layout8") {
 
 
 
-if (LAYOUT_MODE === "layout6") {
+if (window.LAYOUT_MODE === "layout6"){
     COLS = 2;
     ROWS = 3;
 }
@@ -259,14 +442,16 @@ const perPage = COLS * ROWS;
         const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }).slice(1);
 
         allProducts = json.map(row => ({
-            INDEKS: String(row[0] || '').trim(),
-            NAZWA: String(row[1] || '').trim(),
-            CENA: String(row[2] || '').trim(),
-            'KOD EAN': String(row[3] || '').trim(),
-            RANKING: String(row[4] || '').trim(),
-            LOGO: String(row[5] || '').trim(),
-            KRAJPOCHODZENIA: String(row[6] || '').trim()
-        })).filter(p => p.INDEKS || p.NAZWA);
+    INDEKS: String(row[0] || '').trim(),
+    NAZWA: String(row[1] || '').trim(),
+    CENA: String(row[2] || '').trim(),
+    'KOD EAN': String(row[3] || '').trim(),
+    TNZ: String(row[4] || '').trim(),   // ⬅️ DODANE
+    RANKING: String(row[5] || '').trim(),
+    LOGO: String(row[6] || '').trim(),
+    KRAJPOCHODZENIA: String(row[7] || '').trim()
+}))
+
 
         pages.forEach(p => {
             p.stage?.destroy();
@@ -278,11 +463,8 @@ const perPage = COLS * ROWS;
         window.ExcelImporterReady = true;
         window.ExcelImporter = { pages };
 
-        const perPage = COLS * ROWS;
-        for (let i = 0; i < allProducts.length; i += perPage) {
-            const prods = allProducts.slice(i, i + perPage);
-            createPage(Math.floor(i / perPage) + 1, prods);
-        }
+        buildPagesFromProducts(allProducts);
+
 
         const pdfButton = document.getElementById('pdfButton');
         if (pdfButton) pdfButton.disabled = false;
@@ -657,45 +839,55 @@ stage.on('dragstart', (e) => {
     const node = e.target;
     if (!node.draggable()) return;
 
+    // 🔥 TYLKO DLA BOXÓW
+    if (node.getAttr("isBox")) {
+        node._shadowBackup = {
+            blur: node.shadowBlur(),
+            offsetX: node.shadowOffsetX(),
+            offsetY: node.shadowOffsetY(),
+            opacity: node.shadowOpacity()
+        };
+
+        // 🔥 wyłączamy cień na czas drag
+        node.shadowBlur(0);
+        node.shadowOffset({ x: 0, y: 0 });
+        node.shadowOpacity(0);
+    }
+
     node.startX = node.x();
     node.startY = node.y();
 
-    node.to({
-        shadowColor: 'rgba(0,0,0,0.3)',
-        shadowBlur: 12,
-        shadowOffsetX: 5,
-        shadowOffsetY: 5,
-        opacity: 0.85,
-        duration: 0.12,
-        easing: Konva.Easings.EaseOut,
-      });
-
     stage.container().style.cursor = 'grabbing';
 });
+
 
 stage.on('dragmove', () => {
     stage.batchDraw(); // 🚀 turbo płynność
 });
 
 stage.on('dragend', (e) => {
-    // 🔥 usuń poprzednie obrysy po zakończeniu przeciągania
-page.layer.find('.selectionOutline').forEach(n => n.destroy());
-highlightSelection();
+    page.layer.find('.selectionOutline').forEach(n => n.destroy());
+    highlightSelection();
 
     const node = e.target;
     if (!node.draggable()) return;
 
-    node.to({
-        shadowBlur: 0,
-        shadowOffsetX: 0,
-        shadowOffsetY: 0,
-        opacity: 1,
-        duration: 0.15,
-        easing: Konva.Easings.EaseInOut,
-    });
+    // 🔥 PRZYWRÓCENIE CIENIA DLA BOXA
+    if (node.getAttr("isBox") && node._shadowBackup) {
+        node.shadowBlur(node._shadowBackup.blur);
+        node.shadowOffset({
+            x: node._shadowBackup.offsetX,
+            y: node._shadowBackup.offsetY
+        });
+        node.shadowOpacity(node._shadowBackup.opacity);
+
+        delete node._shadowBackup;
+    }
 
     stage.container().style.cursor = 'grab';
+    node.getLayer().batchDraw();
 });
+
 
 
     // === NOWE PRZYCISKI NA GÓRZE STRONY (NOWY PANEL) ===
@@ -1295,12 +1487,16 @@ window.deletePage = function(page) {
 function drawPage(page) {
     const { layer, transformerLayer, products, settings } = page;
 
-    // ❌ NIE USUWAMY TŁA!
-    layer.getChildren().forEach(child => {
-        if (child.getAttr("isPageBg") !== true) {
-            child.destroy();
-        }
-    });
+// 🔥 usuwamy TYLKO elementy produktowe (bez TNZ)
+layer.find(node =>
+    node.getAttr("slotIndex") !== undefined &&
+    node.getAttr("isTNZBadge") !== true &&
+    node.getAttr("isCountryBadge") !== true
+).forEach(n => n.destroy());
+
+
+
+
 
     const showEan = document.getElementById('showEan')?.checked ?? true;
     const showCena = document.getElementById('showCena')?.checked ?? true;
@@ -1315,8 +1511,8 @@ let y = MT + Math.floor(i / COLS) * (BH_dynamic + GAP);
 
 
 // 🔥 PRZESUNIĘCIE WSZYSTKICH BOXÓW TYLKO DLA LAYOUT 8
-let boxOffsetY = 0;
-if (LAYOUT_MODE === "layout8") {
+let boxOffsetY = 20;
+if (window.LAYOUT_MODE === "layout8") {
     boxOffsetY = -38;   // ustaw na -60, -80, -120 jeśli chcesz wyżej
 }
 
@@ -1331,7 +1527,7 @@ let indexOffsetY = -80;
 
 // 🔥 Specjalne ustawienia dla layoutu 8 (mniejsze boksy)
 // 🔥 Specjalne ustawienia dla layoutu 8 (mniejsze boksy)
-if (LAYOUT_MODE === "layout8") {
+if (window.LAYOUT_MODE === "layout8") {
     nameOffsetY = 10;        
     priceOffsetExtra = 70;    
     indexOffsetY = -80;       
@@ -1346,23 +1542,31 @@ const x = xRaw + LEFT_OFFSET;
 
 
         // === PUDEŁKO ===
-        const box = new Konva.Rect({
-            x, y,
-            width: BW_dynamic,
-            height: BH_dynamic,
-            fill: '#fff',
-            stroke: '#ccc',
-            strokeWidth: 2,
-            cornerRadius: 5,
-            shadowEnabled: frame3D,
-            shadowColor: 'rgba(0,0,0,0.2)',
-            shadowBlur: 10,
-            shadowOffset: { x: 5, y: 5 },
-            draggable: true,
-            listening: true,
-            isBox: true,
-            slotIndex: i
-        });
+        // ===================================
+
+
+      const box = new Konva.Rect({
+        
+    x, y,
+    width: BW_dynamic,
+    height: BH_dynamic,
+    fill: '#ffffff',
+    stroke: '#e0e0e0',
+    strokeWidth: 1.5,
+    cornerRadius: 8,
+
+    // 🔥 EFEKT 3D
+    shadowColor: 'rgba(0,0,0,0.25)',
+    shadowBlur: 14,
+    shadowOffset: { x: 0, y: 6 },
+    shadowOpacity: 1,
+
+    draggable: true,
+    listening: true,
+    isBox: true,
+    slotIndex: i
+});
+
         
         box.dragBoundFunc(pos => pos);
         if (page.boxScales[i]) {
@@ -1370,13 +1574,374 @@ const x = xRaw + LEFT_OFFSET;
             box.scaleY(page.boxScales[i].scaleY);
         }
         layer.add(box);
+// ================================
+// TNZ BADGE — WERSJA POPRAWNA
+// ================================
+if (p.TNZ && p.TNZ.toString().trim().toLowerCase() === "x") {
+
+    loadTNZImage((img) => {
+
+        const badgeScale = window.LAYOUT_MODE === "layout8" ? 0.085 : 0.11;
+
+        // ================================
+        // POZYCJA TNZ – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let tnzOffsetX = -245;
+        let tnzOffsetY = -15;
+
+        // layout 6
+        if (window.LAYOUT_MODE === "layout6") {
+            tnzOffsetX = -255;   // lewo / prawo
+            tnzOffsetY = -15;    // góra / dół
+        }
+
+        // layout 8
+        if (window.LAYOUT_MODE === "layout8") {
+            tnzOffsetX = -280;   // lewo / prawo
+            tnzOffsetY = -15;    // góra / dół
+        }
+
+        const tnzBadge = new Konva.Image({
+            image: img,
+
+            x: x + BW_dynamic - img.width * badgeScale + tnzOffsetX,
+            y: y + tnzOffsetY,
+
+            scaleX: badgeScale,
+            scaleY: badgeScale,
+
+            draggable: true,
+            listening: true,
+
+            name: "tnzBadge",
+
+            // 🔥 KLUCZOWE FLAGI
+            isTNZBadge: true,
+            isOverlayElement: true,
+            slotIndex: i
+        });
+
+        layer.add(tnzBadge);
+        tnzBadge.moveToTop();
+        layer.batchDraw();
+    });
+}
+// ================================
+// COUNTRY BADGE — RUMUNIA
+// ================================
+if (
+    p.KRAJPOCHODZENIA &&
+    p.KRAJPOCHODZENIA.toString().trim().toLowerCase() === "rumunia"
+) {
+
+    loadCountryROImage((img) => {
+
+        // ================================
+// WIELKOŚĆ FLAGI – OSOBNO DLA LAYOUTÓW
+// ================================
+let countryScale = 0.10; // domyślnie layout 6
+
+// layout 6 – TU ROZCIĄGASZ
+if (window.LAYOUT_MODE === "layout6") {
+    countryScale = 0.112;   // 🔥 ZWIĘKSZ TYLKO TO
+}
+
+// layout 8 – ZOSTAJE JAK JEST
+if (window.LAYOUT_MODE === "layout8") {
+    countryScale = 0.111;   // ❗ NIE RUSZAJ
+}
+
+
+        // ================================
+        // POZYCJA FLAGI – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let countryOffsetX = -60;
+        let countryOffsetY = 25;
+
+        // layout 6
+        if (window.LAYOUT_MODE === "layout6") {
+            countryOffsetX = 212;
+            countryOffsetY = 111;
+        }
+
+        // layout 8
+        if (window.LAYOUT_MODE === "layout8") {
+            countryOffsetX = 212;
+            countryOffsetY = 12;
+        }
+
+        const countryBadge = new Konva.Image({
+            image: img,
+
+            x: x + countryOffsetX,
+            y: y + countryOffsetY,
+
+            scaleX: countryScale,
+            scaleY: countryScale,
+
+            draggable: true,
+            listening: true,
+
+            name: "countryBadgeRO",
+
+            // 🔥 KLUCZOWE FLAGI
+            isCountryBadge: true,
+            isOverlayElement: true,
+            slotIndex: i
+        });
+
+        layer.add(countryBadge);
+        countryBadge.moveToTop();
+        layer.batchDraw();
+    });
+}
+// ================================
+// COUNTRY BADGE — UKRAINA
+// ================================
+if (
+    p.KRAJPOCHODZENIA &&
+    p.KRAJPOCHODZENIA.toString().trim().toLowerCase() === "ukraina"
+) {
+
+    loadCountryUAImage((img) => {
+
+        // ================================
+        // WIELKOŚĆ FLAGI – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let countryScale = 0.10; // layout 6 – domyślnie
+
+        if (window.LAYOUT_MODE === "layout6") {
+            countryScale = 0.112;   // 🔥 większa tylko dla 6
+        }
+
+        if (window.LAYOUT_MODE === "layout8") {
+            countryScale = 0.111;   // 🔒 NIE ZMIENIAMY
+        }
+
+        // ================================
+        // POZYCJA FLAGI – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let countryOffsetX = 212;
+        let countryOffsetY = 111;
+
+        if (window.LAYOUT_MODE === "layout8") {
+            countryOffsetX = 212;
+            countryOffsetY = 12;
+        }
+
+        const countryBadge = new Konva.Image({
+            image: img,
+
+            x: x + countryOffsetX,
+            y: y + countryOffsetY,
+
+            scaleX: countryScale,
+            scaleY: countryScale,
+
+            draggable: true,
+            listening: true,
+
+            name: "countryBadgeUA",
+
+            // 🔥 KLUCZOWE FLAGI
+            isCountryBadge: true,
+            isOverlayElement: true,
+            slotIndex: i
+        });
+
+        layer.add(countryBadge);
+        countryBadge.moveToTop();
+        layer.batchDraw();
+    });
+}
+
+// ================================
+// COUNTRY BADGE — LITWA
+// ================================
+if (
+    p.KRAJPOCHODZENIA &&
+    p.KRAJPOCHODZENIA.toString().trim().toLowerCase() === "litwa"
+) {
+
+    loadCountryLTImage((img) => {
+
+        // ================================
+        // WIELKOŚĆ FLAGI – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let countryScale = 0.10; // layout 6
+
+        if (window.LAYOUT_MODE === "layout6") {
+            countryScale = 0.112;
+        }
+
+        if (window.LAYOUT_MODE === "layout8") {
+            countryScale = 0.111;
+        }
+
+        // ================================
+        // POZYCJA FLAGI – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let countryOffsetX = 212;
+        let countryOffsetY = 111;
+
+        if (window.LAYOUT_MODE === "layout8") {
+            countryOffsetX = 212;
+            countryOffsetY = 12;
+        }
+
+        const countryBadge = new Konva.Image({
+            image: img,
+
+            x: x + countryOffsetX,
+            y: y + countryOffsetY,
+
+            scaleX: countryScale,
+            scaleY: countryScale,
+
+            draggable: true,
+            listening: true,
+
+            name: "countryBadgeLT",
+
+            // 🔥 KLUCZOWE FLAGI
+            isCountryBadge: true,
+            isOverlayElement: true,
+            slotIndex: i
+        });
+
+        layer.add(countryBadge);
+        countryBadge.moveToTop();
+        layer.batchDraw();
+    });
+}
+
+// ================================
+// COUNTRY BADGE — BUŁGARIA
+// ================================
+if (
+    p.KRAJPOCHODZENIA &&
+    p.KRAJPOCHODZENIA.toString().trim().toLowerCase() === "bulgaria"
+) {
+
+    loadCountryBGImage((img) => {
+
+        // ================================
+        // WIELKOŚĆ FLAGI – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let countryScale = 0.10; // layout 6
+
+        if (window.LAYOUT_MODE === "layout6") {
+            countryScale = 0.112;
+        }
+
+        if (window.LAYOUT_MODE === "layout8") {
+            countryScale = 0.111;
+        }
+
+        // ================================
+        // POZYCJA FLAGI – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let countryOffsetX = 212;
+        let countryOffsetY = 111;
+
+        if (window.LAYOUT_MODE === "layout8") {
+            countryOffsetX = 212;
+            countryOffsetY = 12;
+        }
+
+        const countryBadge = new Konva.Image({
+            image: img,
+
+            x: x + countryOffsetX,
+            y: y + countryOffsetY,
+
+            scaleX: countryScale,
+            scaleY: countryScale,
+
+            draggable: true,
+            listening: true,
+
+            name: "countryBadgeBG",
+
+            // 🔥 KLUCZOWE FLAGI
+            isCountryBadge: true,
+            isOverlayElement: true,
+            slotIndex: i
+        });
+
+        layer.add(countryBadge);
+        countryBadge.moveToTop();
+        layer.batchDraw();
+    });
+}
+
+// ================================
+// COUNTRY BADGE — POLSKA
+// ================================
+if (
+    p.KRAJPOCHODZENIA &&
+    p.KRAJPOCHODZENIA.toString().trim().toLowerCase() === "polska"
+) {
+
+    loadCountryPLImage((img) => {
+
+        // ================================
+        // WIELKOŚĆ FLAGI – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let countryScale = 0.10; // layout 6
+
+        if (window.LAYOUT_MODE === "layout6") {
+            countryScale = 0.112;
+        }
+
+        if (window.LAYOUT_MODE === "layout8") {
+            countryScale = 0.111;
+        }
+
+        // ================================
+        // POZYCJA FLAGI – OSOBNO DLA LAYOUTÓW
+        // ================================
+        let countryOffsetX = 212;
+        let countryOffsetY = 111;
+
+        if (window.LAYOUT_MODE === "layout8") {
+            countryOffsetX = 212;
+            countryOffsetY = 12;
+        }
+
+        const countryBadge = new Konva.Image({
+            image: img,
+
+            x: x + countryOffsetX,
+            y: y + countryOffsetY,
+
+            scaleX: countryScale,
+            scaleY: countryScale,
+
+            draggable: true,
+            listening: true,
+
+            name: "countryBadgePL",
+
+            // 🔥 KLUCZOWE FLAGI
+            isCountryBadge: true,
+            isOverlayElement: true,
+            slotIndex: i
+        });
+
+        layer.add(countryBadge);
+        countryBadge.moveToTop();
+        layer.batchDraw();
+    });
+}
+
+
 
         // === NAZWA ===
         const name = p.NAZWA || 'Pusty';
         const maxWidth = BW - 20;
         const lines = splitTextIntoLines(name, maxWidth, settings.nameSize, settings.fontFamily);
         let nameTop = y + nameOffsetY;
-
 
         const fullName = p.NAZWA || 'Pusty';
 const textObj = new Konva.Text({
@@ -1433,11 +1998,23 @@ if (showCena && p.CENA) {
     const currency = page.settings.currency || 'euro';
     const priceText = currency === 'euro' ? `${p.CENA}€` : `£${p.CENA}`;
 
-    // 🔥 dynamiczna wysokość nazwy
-    const nameHeight = textObj.height();
+   // ================================
+// 🔒 CENA – POZYCJA STAŁA OD BOXA
+// ================================
 
-    // 🔥 stały odstęp poniżej nazwy
-    const priceY = y + nameOffsetY + nameHeight + priceOffsetExtra;
+// pozycja ceny liczona od DOŁU boxa
+let priceY;
+
+// layout 6
+if (window.LAYOUT_MODE === "layout6") {
+    priceY = y + BH_dynamic - 120;
+}
+
+// layout 8
+if (window.LAYOUT_MODE === "layout8"){
+    priceY = y + BH_dynamic - 115;
+}
+
 
 
     const priceObj = new Konva.Text({
@@ -1468,7 +2045,7 @@ if (page.slotObjects[i]) {
 
     // 🔥 DODATKOWE PRZESUNIĘCIE ZDJĘCIA TYLKO DLA LAYOUT 8
     let imageExtraY = 0;
-    if (LAYOUT_MODE === "layout8") {
+    if (window.LAYOUT_MODE === "layout8"){
         imageExtraY = -160;   // 🔼 podniesienie zdjęcia (zmień na -20, -60 itd.)
     }
 
@@ -1498,6 +2075,9 @@ if (page.slotObjects[i]) {
         isProductImage: true,
         slotIndex: i
     });
+    // 🔥 CANVA STYLE SHADOW
+addImageShadow(layer, img);
+
 }
 
 
@@ -1892,7 +2472,7 @@ window.importImagesFromFiles = function() {
 let y = MT + Math.floor(slotIndex / COLS) * (BH + GAP) + 100;
 
 // 🔥 przesunięcie zdjęć tylko w layout8
-if (LAYOUT_MODE === "layout8") {
+if (window.LAYOUT_MODE === "layout8") {
     y -= 80;   // podnieś zdjęcie wyżej
     x += 5;    // opcjonalnie wyrównanie w poziomie
 }
@@ -1915,7 +2495,9 @@ if (LAYOUT_MODE === "layout8") {
                       isProductImage: true,
                       slotIndex: slotIndex
                   });
-  
+  // 🔥 CANVA STYLE SHADOW DLA PNG
+addImageShadow(page.layer, clone);
+
               
                   page.slotObjects[slotIndex] = clone;
   
@@ -2096,6 +2678,7 @@ window.clearAll = function() {
     document.getElementById('pagesContainer').innerHTML = '';
 
     window.ExcelImporterReady = false;
+
     window.ExcelImporter = null;
 
     const pdfButton = document.getElementById('pdfButton');
@@ -2488,5 +3071,81 @@ window.openPageEdit = function(page) {
         panel.remove();
     };
 };
+// === GLOBALNE TWORZENIE NOWEJ, PUSTEJ STRONY ===
+window.createNewPage = function() {
+
+    const newIndex = pages.length + 1;
+
+    // Pusta lista produktów → strona bez produktów
+    const emptyProducts = [];
+
+    // Tworzymy stronę z indeksem i pustymi produktami
+    const page = createPage(newIndex, emptyProducts);
+
+    return page;
+};
 
 console.log("importdanych.js – PEŁNY KOD ZAŁADOWANY – wszystko działa idealnie!");//DZIALA
+// =====================================================
+window.setCatalogLayout = function (layout) {
+
+    if (!layout) return;
+
+    console.log("🔁 ZMIANA LAYOUTU NA:", layout);
+
+    // =========================
+    // 1. ZAPIS GLOBALNY
+    // =========================
+    window.LAYOUT_MODE = layout;
+
+    let scaleBox = 1;
+
+    // =========================
+    // 2. USTAWIENIA GRIDU
+    // =========================
+    if (layout === "layout6") {
+        COLS = layout6Defaults.COLS;
+        ROWS = layout6Defaults.ROWS;
+        GAP  = layout6Defaults.GAP;
+        MT   = layout6Defaults.MT;
+        scaleBox = layout6Defaults.scaleBox;
+    }
+
+    if (layout === "layout8") {
+        COLS = layout8Defaults.COLS;
+        ROWS = layout8Defaults.ROWS;
+        GAP  = layout8Defaults.GAP;
+        MT   = layout8Defaults.MT;
+        scaleBox = layout8Defaults.scaleBox;
+    }
+
+    // =========================
+    // 3. PRZELICZ BOX
+    // =========================
+    BW = (W - ML * 2 - GAP * (COLS - 1)) / COLS;
+    BH = (H - MT - MB - GAP * (ROWS - 1)) / ROWS;
+
+    BW_dynamic = BW * scaleBox;
+    BH_dynamic = BH * scaleBox;
+
+    // =========================
+    // 4. PRZEBUDUJ STRONY
+    // =========================
+    if (!window.allProducts || !allProducts.length) {
+        console.warn("⚠️ Brak produktów – nie przebudowuję");
+        return;
+    }
+
+    pages.forEach(p => {
+        p.stage.destroy();
+        p.container.remove();
+    });
+
+    pages.length = 0;
+    document.getElementById("pagesContainer").innerHTML = "";
+
+    buildPagesFromProducts(allProducts);
+
+    console.log("✅ Layout ZASTOSOWANY:", layout);
+};
+
