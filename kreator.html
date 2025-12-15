@@ -67,6 +67,13 @@
       <i class="fas fa-cloud-upload-alt"></i>
       <span class="sidebar-label">Przesyłanie danych</span>
     </div>
+ <!-- Rysowanie -->
+   <div class="sidebar-item" title="Kształty">
+  <i class="fas fa-draw-polygon"></i>
+  <span class="sidebar-label">Kształty</span>
+</div>
+
+
 
     <!-- Separator -->
     <div class="sidebar-separator"></div>
@@ -156,10 +163,21 @@
       </div>
 
       <!-- PDF BUTTONS – TYLKO Generuj PDF i Ustawienia katalogu -->
-      <div class="pdf-buttons" style="margin-top: 20px;">
-        <button id="pdfButton" class="btn-primary" disabled><i class="fas fa-file-pdf"></i> Generuj PDF</button>
-        <button id="catalogSettingsBtn" class="btn-primary"><i class="fas fa-cog"></i> Ustawienia katalogu</button>
-      </div>
+      <div class="pdf-buttons" style="margin-top: 20px; display:flex; gap:12px;">
+    <button id="pdfButton" class="btn-primary" disabled>
+        <i class="fas fa-file-pdf"></i> Generuj PDF
+    </button>
+
+    <button id="catalogSettingsBtn" class="btn-primary">
+        <i class="fas fa-cog"></i> Ustawienia katalogu
+    </button>
+
+    <!-- 🔥 NOWY PRZYCISK ZAPISZ PROJEKT -->
+    <button id="saveProjectBtn" class="btn-primary" style="background:#0077ff;">
+        <i class="fas fa-save"></i> Zapisz projekt
+    </button>
+</div>
+
     </div>
 
     <div id="pagesContainer"></div>
@@ -202,24 +220,31 @@
 <!-- Quill -->
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 
-<!-- ====================== TWOJE SKRYPTY ====================== -->
-<script src="modulklasyczny.js"></script>
-<script src="importdanych.js"></script>
+<!-- Rysowanie -->
+ 
 
-<script src="baner.js"></script>
-<script type="module" src="importdanych-1.js"></script>
-<script src="edycja.js"></script>
-<script src="edycja-1.js"></script>
-<script src="okladka.js"></script>
-<script src="dodajstrone.js"></script>
-<script src="eangenerator.js"></script>
 
-<!-- 🔥 TU WKLEJ KOD FIREBASE 🔥 -->
+<!-- 🔥 POPRAWNA I JEDYNA Inicjalizacja Firebase -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-  import { getStorage } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-storage.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 
-  const firebaseConfig = {
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    doc,
+    getDoc,
+    deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+import {
+    getStorage
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-storage.js";
+
+// 🔥 KONFIG FIREBASE
+const firebaseConfig = {
     apiKey: "AIzaSyDwzVRS5W2lklGMLcZJn-YPCK9OtBQZ7bI",
     authDomain: "pdf-creator-f7a8b.firebaseapp.com",
     projectId: "pdf-creator-f7a8b",
@@ -227,19 +252,79 @@
     messagingSenderId: "606744201676",
     appId: "1:606744201676:web:6f8c1b2c323fbaf6f3b569",
     measurementId: "G-QVPYM3G99P"
-  };
+};
 
-  // 🔥 inicjalizacja
-  const app = initializeApp(firebaseConfig);
-  const storage = getStorage(app);
+// 🔥 INICJALIZACJA
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+// ---------------------------------------------------------------
+// 🔥 DRUGA APLIKACJA FIREBASE – PDF-CREATOR-V2 (tylko zapisy projektów)
+// ---------------------------------------------------------------
+const firebaseConfig2 = {
+  apiKey: "AIzaSyCc8MTmJF7qi3Vk9v1SwMTy6yzSo444f98",
+  authDomain: "pdf-creator-v2.firebaseapp.com",
+  projectId: "pdf-creator-v2",
+  storageBucket: "pdf-creator-v2.firebasestorage.app",
+  messagingSenderId: "758727102700",
+  appId: "1:758727102700:web:3e9a211a0132a0200b55c9"
+};
 
-  // 🌍 udostępniamy globalnie, żeby inne pliki mogły używać
-  window.firebaseApp = app;
-  window.firebaseStorage = storage;
+// 🔥 Tworzymy DRUGĄ aplikację Firebase
+const app2 = initializeApp(firebaseConfig2, "secondary");
 
-  console.log("✅ Firebase App i Storage zainicjalizowane");
+// 🔥 Firestore z DRUGIEGO projektu
+const db2 = getFirestore(app2);
+
+// 🔥 Zapisujemy globalnie, saveall.js będzie tego używać
+window.firestoreV2 = db2;
+
+console.log("🔥 PDF-CREATOR-V2 Firestore READY!");
+
+// 🔥 GLOBALNE
+window.firebaseApp = app;
+window.firebaseDB = db;
+window.firebaseStorage = storage;
+
+// 🔥 EXPORTUJEMY FUNKCJE FIRESTORE DO GLOBALA
+window.FS_collection = collection;
+window.FS_addDoc = addDoc;
+window.FS_getDocs = getDocs;
+window.FS_query = query;
+
+window.FS_doc = doc;
+window.FS_getDoc = getDoc;
+window.FS_deleteDoc = deleteDoc;
+
+console.log("🔥 Firebase + Firestore poprawnie zainicjalizowane!");
 </script>
 
+
+
+
+
+<!-- ============================================== -->
+<!-- 🔥 2. TERAZ dopiero Twoje wszystkie skrypty     -->
+<!--    (wszystkie będą miały dostęp do firebaseDB) -->
+<!-- ============================================== -->
+
+<script src="edytor.js"></script>
+<script src="importdanych.js"></script>
+<script src="baner.js"></script>
+
+<!-- jeśli plik używa importów – musi być module -->
+<script type="module" src="importdanych-1.js"></script>
+
+<script src="edycja.js"></script>
+<script src="edycja-1.js"></script>
+<script src="okladka.js"></script>
+<script src="dodajstrone.js"></script>
+<script src="eangenerator.js"></script>
+<script src="rysowanie.js"></script>
+
+
+<!-- 🔥 3. Save/load system -->
+<script type="module" src="saveall.js"></script>
 
   <!-- INICJALIZACJA -->
   <script>
@@ -333,6 +418,58 @@
       }
     });
   </script>
+<!-- 🔥 MODAL: ZAPISZ PROJEKT -->
+<div id="saveProjectModal" 
+     style="
+        display:none; 
+        position:fixed;
+        top:0; left:0;
+        width:100%; height:100%;
+        background:rgba(0,0,0,0.45);
+        z-index:999999;
+        justify-content:center;
+        align-items:center;
+     ">
+  
+  <div style="
+      width:360px;
+      background:white;
+      padding:24px;
+      border-radius:12px;
+      box-shadow:0 10px 40px rgba(0,0,0,0.25);
+      font-family:Inter, Arial;
+  ">
+      <h2 style="margin-top:0; font-size:20px; font-weight:600;">
+        Zapisz projekt
+      </h2>
+
+      <label>Nazwa projektu:</label>
+      <input id="projectNameInput"
+             type="text"
+             placeholder="np. Rumunia grudzień 2025"
+             style="width:100%; padding:8px; margin:6px 0 12px 0;
+                    border:1px solid #ccc; border-radius:6px;">
+
+      <label>Data utworzenia:</label>
+      <input id="projectDateInput"
+             type="date"
+             style="width:100%; padding:8px; margin:6px 0 20px 0;
+                    border:1px solid #ccc; border-radius:6px;">
+
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button id="cancelSaveBtn" 
+                  style="padding:8px 14px; border:none; border-radius:6px; background:#ddd;">
+            Anuluj
+          </button>
+
+          <button id="confirmSaveBtn"
+                  style="padding:8px 14px; border:none; border-radius:6px; background:#0077ff; color:white;">
+            Zapisz
+          </button>
+      </div>
+  </div>
+
+</div>
 
 </body>
 </html>
