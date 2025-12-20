@@ -2551,7 +2551,7 @@ addImageShadow(page.layer, clone);
     alert(`Zaimportowano ${matched.length} zdjęć`);
 };
 async function removeBackgroundAI(imgData, cb) {
-
+showAIOverlay();
     const session = await getU2NetSession(); // 🔥 TU JEST KLUCZ
 
     const img = new Image();
@@ -2598,7 +2598,10 @@ async function removeBackgroundAI(imgData, cb) {
     }
 
     outCtx.putImageData(outData, 0, 0);
-    cb(outCanvas.toDataURL("image/png"));
+
+hideAIOverlay(); // 👈 KONIEC ANIMACJI
+cb(outCanvas.toDataURL("image/png"));
+
 }
 
 
@@ -3258,6 +3261,75 @@ window.setCatalogLayout = function (layout) {
     document.getElementById("pagesContainer").innerHTML = "";
 
     buildPagesFromProducts(allProducts);
+// ================================
+// OVERLAY „AI PROCESSING…”
+// ================================
+const aiOverlay = document.createElement("div");
+aiOverlay.id = "aiProcessingOverlay";
+aiOverlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+`;
+
+aiOverlay.innerHTML = `
+  <div style="
+      background:#fff;
+      padding:28px 36px;
+      border-radius:18px;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      gap:18px;
+      font-family:Arial;
+  ">
+      <div class="aiSpinner"></div>
+      <div style="font-size:16px;font-weight:600;color:#333;">
+          Usuwanie tła…<br>
+          <span style="font-size:13px;font-weight:400;color:#666;">
+              AI analizuje obraz
+          </span>
+      </div>
+  </div>
+`;
+
+document.body.appendChild(aiOverlay);
+
+// spinner (CSS)
+const spinnerStyle = document.createElement("style");
+spinnerStyle.textContent = `
+.aiSpinner {
+    width:34px;
+    height:34px;
+    border:4px solid #e0e0e0;
+    border-top:4px solid #8e44ad;
+    border-radius:50%;
+    animation: aiSpin 1s linear infinite;
+}
+@keyframes aiSpin {
+    to { transform: rotate(360deg); }
+}
+`;
+document.head.appendChild(spinnerStyle);
+
+function showAIOverlay() {
+    aiOverlay.style.pointerEvents = "auto";
+    aiOverlay.style.opacity = "1";
+}
+
+function hideAIOverlay() {
+    aiOverlay.style.opacity = "0";
+    setTimeout(() => {
+        aiOverlay.style.pointerEvents = "none";
+    }, 250);
+}
 
     console.log("✅ Layout ZASTOSOWANY:", layout);
 };//kod dziala dobrze z poprawkami :)
