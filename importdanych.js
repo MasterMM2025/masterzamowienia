@@ -2551,8 +2551,11 @@ addImageShadow(page.layer, clone);
     alert(`Zaimportowano ${matched.length} zdjęć`);
 };
 async function removeBackgroundAI(imgData, cb) {
-showAIOverlay();
-    const session = await getU2NetSession(); // 🔥 TU JEST KLUCZ
+
+    showAIOverlay(); // 👈 TU DOKŁADNIE
+
+    const session = await getU2NetSession();
+
 
     const img = new Image();
     img.src = imgData;
