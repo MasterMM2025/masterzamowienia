@@ -4,11 +4,6 @@
 window.pages = window.pages || [];
 const TNZ_BADGE_URL =
   "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FTNZ.png?alt=media";
-// ================================
-// ONNX – MODEL U2NET (REMOVE BG)
-// ================================
-const U2NET_MODEL_URL =
-  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/u2net.onnx?alt=media";
 
 window.TNZ_IMAGE = null;
 const COUNTRY_RO_BADGE_URL =
@@ -148,7 +143,66 @@ function loadCountryUAImage(cb) {
 
 
 window.isEditingText = false;
+// ================================
+// CANVA TEXT HELPERS – Z DEMO
+// ================================
+function getTokensInString(text) {
+    if (typeof text === "string") {
+        return text.split(/[\s\n]+/).filter(t => t.length > 0);
+    }
+    return [];
+}
 
+function hasBrokenWords(sourceTokens, renderLines) {
+    let combined = "";
+    for (let i = 0; i < renderLines.length; i++) {
+        combined += (i === 0 ? "" : " ") + renderLines[i].text;
+    }
+    const a = sourceTokens;
+    const b = getTokensInString(combined);
+    if (a.length !== b.length) return true;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return true;
+    }
+    return false;
+}
+
+function shrinkText(textNode, minFontSize = 8) {
+    const sourceTokens = getTokensInString(textNode.text());
+    let brokenWords = hasBrokenWords(sourceTokens, textNode.textArr);
+    let textHeight = textNode.textArr.length * textNode.textHeight;
+    let textAreaHeight = textNode.height();
+
+    while ((textHeight > textAreaHeight || brokenWords) && textNode.fontSize() > minFontSize) {
+        textNode.fontSize(textNode.fontSize() - 1);
+        brokenWords = hasBrokenWords(sourceTokens, textNode.textArr);
+        textHeight = textNode.textArr.length * textNode.textHeight;
+        textAreaHeight = textNode.height();
+    }
+    return textNode.fontSize();
+}
+
+function createRotationLabel(layer) {
+    const label = new Konva.Label({
+        opacity: 0,
+        visible: false
+    });
+    const tag = new Konva.Tag({
+        fill: "black",
+        cornerRadius: 6,
+        padding: 6
+    });
+    const text = new Konva.Text({
+        text: "",
+        fontSize: 16,
+        fill: "white",
+        fontFamily: "Arial"
+    });
+    label.add(tag);
+    label.add(text);
+    layer.add(label);
+    return { label, text };
+}
 window.allProducts = [];
 window.pages = [];
 
@@ -597,23 +651,24 @@ bgRect.on('transformend', (e) => e.cancelBubble = true);
 
     // TRANSFORMER – DOKŁADNE SKALOWANIE + WIĘCEJ UCHWYTÓW
 const tr = new Konva.Transformer({
-    hitStrokeWidth: 20,        // 🔥 tekst łatwo się zaznacza
-padding: 6,                // 🔥 transformer jest widoczny przy jednej linii
+    hitStrokeWidth: 20,
+    padding: 6,
 
     enabledAnchors: [
         'top-left', 'top-center', 'top-right',
         'middle-left', 'middle-right',
         'bottom-left', 'bottom-center', 'bottom-right'
     ],
+
     rotateEnabled: true,
-    ignoreStroke: false, // 🔥 lepsza precyzja transformacji
-    keepRatio: true,
+    keepRatio: true,   // 🔥 PROPORCJE
     borderStroke: '#007cba',
     borderStrokeWidth: 2,
     anchorStroke: '#007cba',
     anchorFill: '#ffffff',
-    anchorSize: 12, // 🔥 większe uchwyty do łatwiejszego chwytania
+    anchorSize: 12,
     padding: 4,
+
     boundBoxFunc: (oldBox, newBox) => {
         // 🔥 ograniczamy minimalny rozmiar aby nic się nie "odwróciło"
         if (Math.abs(newBox.width) < 20 || Math.abs(newBox.height) < 20) return oldBox;
@@ -653,20 +708,21 @@ tr.anchorDragBoundFunc(function(oldPos, newPos) {
 });
 
     transformerLayer.add(tr);
+
     // === MARQUEE SELECTION (ZAZNACZANIE PRZECIĄGANIEM) ===
 let marqueeActive = false;
 let marqueeStart = null;
 
 const selectionRect = new Konva.Rect({
+    
     fill: 'rgba(0, 160, 255, 0.15)',
     stroke: 'rgba(0, 160, 255, 0.7)',
     strokeWidth: 1,
     visible: false,
     listening: false,   // 🔥 najważniejsze — nie przechwytuje kliknięć!
     name: 'selectionRect'
+    
 });
-layer.add(selectionRect);
-selectionRect.moveToTop(); // 🔥 zawsze na sam wierzch
 
 
 stage.on('mousedown.marquee', (e) => {
@@ -674,13 +730,14 @@ stage.on('mousedown.marquee', (e) => {
     if (e.target !== stage && e.target.getAttr("isPageBg") !== true) return;
     marqueeActive = true;
     marqueeStart = stage.getPointerPosition();
-
+selectionRect.moveToTop();
     selectionRect.setAttrs({
         x: marqueeStart.x,
         y: marqueeStart.y,
         width: 0,
         height: 0,
         visible: true
+        
     });
 
     page.selectedNodes = [];
@@ -703,6 +760,7 @@ stage.on('mousemove.marquee', () => {
         width: Math.abs(pos.x - marqueeStart.x),
         height: Math.abs(pos.y - marqueeStart.y)
     });
+    selectionRect.moveToTop();  // 🔥 DODAJ TO
     layer.batchDraw();
 });
 
@@ -712,14 +770,18 @@ stage.on('mouseup.marquee', () => {
 
     const area = selectionRect.getClientRect();
 
-    const nodes = page.layer.getChildren().filter((node) => {
-        const attrs = node.getAttrs();
-        if (attrs.isBox || attrs.isProductText || attrs.isProductImage || attrs.isBarcode) {
-            const box = node.getClientRect();
-            return Konva.Util.haveIntersection(area, box);
-        }
-        return false;
-    });
+    const nodes = page.layer.children.filter(node => {
+    // Pomijamy tło strony i sam prostokąt zaznaczania
+    if (node === bgRect || node.getAttr("isPageBg")) return false;
+    if (node === selectionRect) return false;
+
+    // Wszystko inne co jest draggable lub tekst/obraz/box
+    if (node.draggable() || node instanceof Konva.Text || node instanceof Konva.Image || node instanceof Konva.Rect) {
+        const box = node.getClientRect();
+        return Konva.Util.haveIntersection(area, box);
+    }
+    return false;
+});
 
     selectionRect.visible(false);
 
@@ -853,10 +915,11 @@ stage.on('dragstart', (e) => {
             opacity: node.shadowOpacity()
         };
 
-        // 🔥 wyłączamy cień na czas drag
-        node.shadowBlur(0);
-        node.shadowOffset({ x: 0, y: 0 });
-        node.shadowOpacity(0);
+        // 🔥 zostawiamy delikatny cień nawet podczas drag
+node.shadowBlur(6);
+node.shadowOffset({ x: 0, y: 3 });
+node.shadowOpacity(0.35);
+
     }
 
     node.startX = node.x();
@@ -1372,64 +1435,7 @@ highlightSelection();
 
     page._oldTransformBox = page.transformer.getClientRect();
 });
-
-
-    // === TRANSFORM – WŁASNE SKALOWANIE ===
-    stage.on('transform', () => {
-        const nodes = page.selectedNodes;
-        if (nodes.length <= 1) return;
-
-        const trBox = page.transformer.getClientRect();
-        const oldBox = page._oldTransformBox || trBox;
-        const scaleX = trBox.width / oldBox.width;
-        const scaleY = trBox.height / oldBox.height;
-
-        nodes.forEach((node) => {
-            if (node instanceof Konva.Text) {
-                const newSize = node.fontSize() * Math.max(scaleX, scaleY);
-                node.fontSize(Math.max(6, newSize));
-            }
-            if (node instanceof Konva.Image) {
-                node.width(node.width() * scaleX);
-                node.height(node.height() * scaleY);
-            }
-            if (node instanceof Konva.Rect) {
-                node.width(node.width() * scaleX);
-                node.height(node.height() * scaleY);
-            }
-        });
-
-        page._oldTransformBox = trBox;
-        page.layer.batchDraw();
-    });
-    // === DYNAMICZNE ZAWIJANIE + MINIMALNE WYMIARY DLA KAŻDEGO TEKSTU ===
-stage.on('transform', () => {
-    if (page.selectedNodes.length !== 1) return;
-
-    const node = page.selectedNodes[0];
-    if (!(node instanceof Konva.Text)) return;
-
-    // --- Szerokość ---
-    let newWidth = node.width() * node.scaleX();
-    newWidth = Math.max(newWidth, 80); // minimalna szerokość
-    node.scaleX(1);
-
-    // --- Wysokość (tu był problem!) ---
-    let newHeight = node.height() * node.scaleY();
-    newHeight = Math.max(newHeight, 24); // minimalna wysokość tekstu
-    node.scaleY(1);
-
-    // zapisujemy
-    node.width(newWidth);
-    node.height(newHeight);
-
-    node.setAttrs({ wrap: 'word' });
-
-    page.layer.batchDraw();
-    page.transformerLayer.batchDraw();
-});
-
-
+    
     // === EVENTY TRANSFORMACJI ===
     stage.on('dragstart dragend transformend', () => {
         setTimeout(() => {
@@ -1550,21 +1556,23 @@ const x = xRaw + LEFT_OFFSET;
         // ===================================
 
 
+
+
       const box = new Konva.Rect({
         
     x, y,
     width: BW_dynamic,
     height: BH_dynamic,
-    fill: '#ffffff',
-    stroke: '#e0e0e0',
-    strokeWidth: 1.5,
-    cornerRadius: 8,
+   fill: '#ffffff',
+stroke: 'rgba(0,0,0,0.06)',
+strokeWidth: 1,
+cornerRadius: 10,
+shadowColor: 'rgba(0,0,0,0.18)',
+shadowBlur: 30,
+shadowOffset: { x: 0, y: 12 },
+shadowOpacity: 0.8,
 
-    // 🔥 EFEKT 3D
-    shadowColor: 'rgba(0,0,0,0.25)',
-    shadowBlur: 14,
-    shadowOffset: { x: 0, y: 6 },
-    shadowOpacity: 1,
+
 
     draggable: true,
     listening: true,
@@ -1579,6 +1587,9 @@ const x = xRaw + LEFT_OFFSET;
             box.scaleY(page.boxScales[i].scaleY);
         }
         layer.add(box);
+
+
+        
 // ================================
 // TNZ BADGE — WERSJA POPRAWNA
 // ================================
@@ -1966,7 +1977,7 @@ const textObj = new Konva.Text({
 });
 textObj.dragBoundFunc(pos => pos);
 layer.add(textObj);
-enableTextEditing(textObj, page);
+enableEditableText(textObj, page);
 textObj.moveToTop();
 if (textObj.height() < 28) textObj.height(28);
 
@@ -1995,7 +2006,7 @@ if (textObj.height() < 28) textObj.height(28);
         layer.add(indexObj);
         if (indexObj.height() < 26) indexObj.height(26);
         indexObj.moveToTop();
-        enableTextEditing(indexObj, page);
+        enableEditableText(textObj, page);
 
         // === CENA ===
 if (showCena && p.CENA) {
@@ -2040,7 +2051,7 @@ if (window.LAYOUT_MODE === "layout8"){
 
     layer.add(priceObj);
     priceObj.moveToTop();
-    enableTextEditing(priceObj, page);
+    enableEditableText(textObj, page);
 }
 
 
@@ -2927,76 +2938,153 @@ window.addEventListener('canvasCreated', (e) => {
     const page = pages.find(p => p.stage === e.detail);
     setTimeout(() => applyCursorEvents(page), 200);
 });
-function enableTextEditing(textNode, page) {
-    const stage = page.stage;
+function enableEditableText(node, page) {
+    const layer = page.layer;
+    const tr = page.transformer;
 
-    textNode.on('dblclick dbltap', () => {
+    // Zapamiętaj oryginalne wartości
+    node.originalFontSize = node.fontSize();
+    node.originalWidth = node.width();
+    node.originalHeight = node.height();
 
-        window.isEditingText = true;   // 🔥 blokada kliknięć i multi-select
+    // Etykieta rotacji
+    const rotationUI = createRotationLabel(layer);
 
-        page.transformer.hide();
+    // Pokazuj kąt przy rotacji
+    node.on("transform", () => {
+        const angle = Math.round(node.rotation());
+        rotationUI.text.text(angle + "°");
+        const abs = node.absolutePosition();
+        rotationUI.label.position({
+            x: abs.x + node.width() / 2,
+            y: abs.y - 40
+        });
+        rotationUI.label.visible(true);
+        rotationUI.label.opacity(1);
+        layer.batchDraw();
+    });
 
-        const pos = textNode.getAbsolutePosition();
-        const rect = stage.container().getBoundingClientRect();
+    node.on("transformend", () => {
+        rotationUI.label.to({
+            opacity: 0,
+            duration: 0.25,
+            onFinish: () => rotationUI.label.visible(false)
+        });
+    });
 
+    // GŁÓWNA LOGIKA SKALOWANIA – IDENTYCZNA Z DEMO
+    node.on("transform", () => {
+        const oldPos = node.absolutePosition();
+
+        let newW = node.width() * node.scaleX();
+        let newH = node.height() * node.scaleY();
+
+        node.setAttrs({
+            width: newW,
+            height: newH,
+            scaleX: 1,
+            scaleY: 1
+        });
+
+        // 1. Najpierw próbuj POWIĘKSZYĆ
+        let enlarged = false;
+        while (true) {
+            const prev = node.fontSize();
+            node.fontSize(prev + 1);
+
+            const h = node.textArr.length * node.textHeight;
+            if (h > newH) {
+                node.fontSize(prev);
+                break;
+            }
+            if (hasBrokenWords(getTokensInString(node.text()), node.textArr)) {
+                node.fontSize(prev);
+                break;
+            }
+            enlarged = true;
+        }
+
+        // 2. Jeśli nie powiększyło – shrink
+        if (!enlarged) {
+            shrinkText(node, 8);
+        }
+
+        node.absolutePosition(oldPos);
+        layer.batchDraw();
+    });
+
+    // DBLCLICK → TEXTAREA (pełna wersja z demo)
+    node.on("dblclick dbltap", function () {
+        window.isEditingText = true;
+        tr.hide();
+        node.hide();
+        layer.draw();
+
+        const pos = node.absolutePosition();
+        const rect = page.stage.container().getBoundingClientRect();
         const absX = rect.left + pos.x + window.scrollX;
         const absY = rect.top + pos.y + window.scrollY;
 
-        const textarea = document.createElement('textarea');
+        const textarea = document.createElement("textarea");
         document.body.appendChild(textarea);
 
-        textarea.value = textNode.text();
-        textarea.style.position = 'absolute';
-        textarea.style.left = absX + 'px';
-        textarea.style.top = absY + 'px';
-        textarea.style.width = textNode.width() + 'px';
-        textarea.style.height = (textNode.height() + 20) + 'px';
-        textarea.style.fontSize = textNode.fontSize() + 'px';
-        textarea.style.fontFamily = textNode.fontFamily();
-        textarea.style.color = textNode.fill();
-        textarea.style.padding = '4px';
-        textarea.style.border = '2px solid #007bff';
-        textarea.style.borderRadius = '6px';
-        textarea.style.background = 'white';
-        textarea.style.zIndex = 99999;
+        textarea.value = node.text();
+        Object.assign(textarea.style, {
+            position: "absolute",
+            left: absX + "px",
+            top: absY + "px",
+            width: node.width() + "px",
+            minHeight: node.height() + "px",
+            fontSize: node.fontSize() + "px",
+            fontFamily: node.fontFamily(),
+            lineHeight: node.lineHeight(),
+            textAlign: node.align(),
+            color: node.fill(),
+            padding: "2px",
+            border: "2px solid #0066ff",
+            background: "white",
+            resize: "none",
+            zIndex: 99999,
+            outline: "none",
+            overflow: "hidden"
+        });
 
         textarea.focus();
+        textarea.style.height = textarea.scrollHeight + "px";
 
-        function finishEditing() {
-            const newText = textarea.value;
-            textNode.text(newText);
-
-            // === AUTO-RESIZE WYSOKOŚCI TEKSTU ===
-            const dummy = document.createElement("div");
-            dummy.style.position = "absolute";
-            dummy.style.visibility = "hidden";
-            dummy.style.width = textNode.width() + "px";
-            dummy.style.fontSize = textNode.fontSize() + "px";
-            dummy.style.fontFamily = textNode.fontFamily();
-            dummy.style.whiteSpace = "pre-wrap";
-            dummy.style.lineHeight = "1.2";
-            dummy.innerText = newText;
-            document.body.appendChild(dummy);
-
-            const newHeight = Math.max(28, dummy.offsetHeight + 4);
-            textNode.height(newHeight); // 🔥 teraz wszystkie linie widoczne
-
-            dummy.remove();
+        const finish = () => {
+            node.text(textarea.value || "-");
+            shrinkText(node, 8);
+            node.show();
+            tr.show();
+            tr.forceUpdate();
+            layer.draw();
             textarea.remove();
+            window.isEditingText = false;
+            window.removeEventListener("click", close);
+        };
 
-            window.isEditingText = false; // 🔥 odblokowanie multi-select
-            page.transformer.show();
-            page.layer.batchDraw();
-        }
+        const close = (e) => {
+            if (e.target !== textarea) finish();
+        };
 
-        textarea.addEventListener('blur', finishEditing);
-
-        textarea.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+        textarea.addEventListener("keydown", e => {
+            if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                finishEditing();
+                finish();
             }
+            if (e.key === "Escape") finish();
         });
+
+        textarea.addEventListener("input", () => {
+            node.text(textarea.value);
+            const newSize = shrinkText(node, 8);
+            textarea.style.fontSize = newSize + "px";
+            textarea.style.height = "auto";
+            textarea.style.height = textarea.scrollHeight + "px";
+        });
+
+        setTimeout(() => window.addEventListener("click", close), 0);
     });
 }
 // =====================================================================
@@ -3152,5 +3240,6 @@ window.setCatalogLayout = function (layout) {
     buildPagesFromProducts(allProducts);
 
     console.log("✅ Layout ZASTOSOWANY:", layout);
-};
+};//kod dziala dobrze z poprawkami :)
+
 
