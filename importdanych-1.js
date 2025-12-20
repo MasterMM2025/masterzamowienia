@@ -847,9 +847,12 @@ const scale = Math.min(
     isEditable: true,
     isSelectable: true,
     isDraggable: true,
+    isPageBg: false,   // 🔥 KLUCZOWE
     name: "design-image"
 });
+
 markAsEditable(kImg);
+kImg.hitStrokeWidth(20);
 
 
   page.layer.add(kImg);
@@ -858,6 +861,7 @@ kImg.width(kImg.width() * kImg.scaleX());
 kImg.height(kImg.height() * kImg.scaleY());
 kImg.scaleX(1);
 kImg.scaleY(1);
+kImg.zIndex(10);
 
   page.layer.batchDraw();
 });
@@ -924,6 +928,7 @@ kImg.setAttrs({
     name: "design-image"
 });
 markAsEditable(kImg);
+kImg.hitStrokeWidth(20);
 
 
 
