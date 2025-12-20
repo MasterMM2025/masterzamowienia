@@ -9,6 +9,24 @@ const TNZ_BADGE_URL =
 // ================================
 const U2NET_MODEL_URL =
   "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/u2net.onnx?alt=media";
+let u2netSession = null;
+
+async function getU2NetSession() {
+    if (u2netSession) return u2netSession;
+
+    u2netSession = await ort.InferenceSession.create(
+        U2NET_MODEL_URL,
+        {
+            executionProviders: ['wasm'],
+            graphOptimizationLevel: 'all'
+        }
+    );
+
+    console.log("✅ U2NET załadowany");
+    return u2netSession;
+}
+
+
 
 window.TNZ_IMAGE = null;
 const COUNTRY_RO_BADGE_URL =
