@@ -3243,3 +3243,4 @@ window.setCatalogLayout = function (layout) {
 };//kod dziala dobrze z poprawkami :)
 
 
+
