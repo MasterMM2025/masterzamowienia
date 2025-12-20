@@ -2,7 +2,8 @@
 // importdanych.js – PEŁNY, KONVA.JS – GLOBALNY CLIPBOARD + JEDNORAZOWE WKLEJANIE + PEŁNE DRAG & DROP + MENU WARSTW + USUWANIE STRON + CANVA-STYLE EDYTOR
 // ======================================================================== //
 const RMBG_MODEL_URL =
-  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/modul%2Frmbg_fp16.onnx?alt=media";
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/modul%2Fmodel_fp16.onnx?alt=media";
+
 let rmbgSession = null;
 
 async function getU2NetSession() {
