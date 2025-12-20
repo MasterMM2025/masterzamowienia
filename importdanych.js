@@ -8,24 +8,26 @@ const TNZ_BADGE_URL =
 // ONNX – MODEL U2NET (REMOVE BG)
 // ================================
 const U2NET_MODEL_URL =
-  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/modul%2Fu2net.onnx?alt=media";
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/modul%2Frmbg_fp16.onnx?alt=media";
 
 let u2netSession = null;
 
-async function getU2NetSession() {
-    if (u2netSession) return u2netSession;
+let rmbgSession = null;
 
-    u2netSession = await ort.InferenceSession.create(
-        U2NET_MODEL_URL,
+async function getU2NetSession() {
+    if (rmbgSession) return rmbgSession;
+
+    rmbgSession = await ort.InferenceSession.create(
+        RMBG_MODEL_URL,
         {
             executionProviders: ['wasm'],
             graphOptimizationLevel: 'all'
         }
     );
 
-    console.log("✅ U2NET załadowany");
-    return u2netSession;
+    return rmbgSession;
 }
+
 
 
 window.TNZ_IMAGE = null;
