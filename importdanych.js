@@ -2553,7 +2553,8 @@ addImageShadow(page.layer, clone);
     alert(`Zaimportowano ${matched.length} zdjęć`);
 };
 async function removeBackgroundAI(imgData, cb) {
-    const session = await ort.InferenceSession.create("/models/u2net.onnx");
+
+    const session = await getU2NetSession(); // 🔥 TU JEST KLUCZ
 
     const img = new Image();
     img.src = imgData;
@@ -2575,7 +2576,6 @@ async function removeBackgroundAI(imgData, cb) {
     }
 
     const tensor = new ort.Tensor("float32", input, [1, 3, SIZE, SIZE]);
-
     const inputName = session.inputNames[0];
 
     const result = await session.run({ [inputName]: tensor });
@@ -2594,15 +2594,15 @@ async function removeBackgroundAI(imgData, cb) {
         for (let x = 0; x < img.width; x++) {
             const ix = Math.floor((x / img.width) * SIZE);
             const iy = Math.floor((y / img.height) * SIZE);
-            const maskVal = mask[iy * SIZE + ix];
-
-            outPixels[(y * img.width + x) * 4 + 3] = maskVal * 255;
+            outPixels[(y * img.width + x) * 4 + 3] =
+                mask[iy * SIZE + ix] * 255;
         }
     }
 
     outCtx.putImageData(outData, 0, 0);
     cb(outCanvas.toDataURL("image/png"));
 }
+
 
 
 
