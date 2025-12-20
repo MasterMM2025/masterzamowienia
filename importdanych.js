@@ -2563,7 +2563,7 @@ async function removeBackgroundAI(imgData, cb) {
     img.src = imgData;
     await img.decode();
 
-    const SIZE = 320;
+    const SIZE = 512;
 
     const canvas = new OffscreenCanvas(SIZE, SIZE);
     const ctx = canvas.getContext("2d");
