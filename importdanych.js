@@ -8,7 +8,8 @@ const TNZ_BADGE_URL =
 // ONNX – MODEL U2NET (REMOVE BG)
 // ================================
 const U2NET_MODEL_URL =
-  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/u2net.onnx?alt=media";
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/modul%2Fu2net.onnx?alt=media";
+
 let u2netSession = null;
 
 async function getU2NetSession() {
