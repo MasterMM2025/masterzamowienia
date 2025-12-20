@@ -2551,10 +2551,8 @@ addImageShadow(page.layer, clone);
     alert(`Zaimportowano ${matched.length} zdjęć`);
 };
 async function removeBackgroundAI(imgData, cb) {
-
-    showAIOverlay(); // 👈 TU DOKŁADNIE
-
     const session = await getU2NetSession();
+
 
 
     const img = new Image();
@@ -2601,9 +2599,8 @@ async function removeBackgroundAI(imgData, cb) {
     }
 
     outCtx.putImageData(outData, 0, 0);
-
-hideAIOverlay(); // 👈 KONIEC ANIMACJI
 cb(outCanvas.toDataURL("image/png"));
+
 
 }
 
