@@ -4,6 +4,11 @@
 window.pages = window.pages || [];
 const TNZ_BADGE_URL =
   "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FTNZ.png?alt=media";
+// ================================
+// ONNX – MODEL U2NET (REMOVE BG)
+// ================================
+const U2NET_MODEL_URL =
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/u2net.onnx?alt=media";
 
 window.TNZ_IMAGE = null;
 const COUNTRY_RO_BADGE_URL =
