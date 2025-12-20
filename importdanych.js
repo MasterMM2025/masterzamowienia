@@ -1,17 +1,8 @@
 // ======================================================================== //
 // importdanych.js – PEŁNY, KONVA.JS – GLOBALNY CLIPBOARD + JEDNORAZOWE WKLEJANIE + PEŁNE DRAG & DROP + MENU WARSTW + USUWANIE STRON + CANVA-STYLE EDYTOR
 // ======================================================================== //
-window.pages = window.pages || [];
-const TNZ_BADGE_URL =
-  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FTNZ.png?alt=media";
-// ================================
-// ONNX – MODEL U2NET (REMOVE BG)
-// ================================
-const U2NET_MODEL_URL =
+const RMBG_MODEL_URL =
   "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/modul%2Frmbg_fp16.onnx?alt=media";
-
-let u2netSession = null;
-
 let rmbgSession = null;
 
 async function getU2NetSession() {
@@ -29,6 +20,9 @@ async function getU2NetSession() {
 }
 
 
+window.pages = window.pages || [];
+const TNZ_BADGE_URL =
+  "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FTNZ.png?alt=media";
 
 window.TNZ_IMAGE = null;
 const COUNTRY_RO_BADGE_URL =
