@@ -3626,27 +3626,39 @@ if (node.getAttr && node.getAttr("isBox")) {
 
   // === OBRAZ ===
   if (node instanceof Konva.Image && node.image()) {
-    const img = node.image();
-    const canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    canvas.getContext("2d").drawImage(img, 0, 0);
+  const img = node.image();
 
-    pdf.addImage(
-      canvas.toDataURL("image/png"),
-      "PNG",
-      node.x(),
-      node.y(),
-      node.width() * node.scaleX(),
-      node.height() * node.scaleY()
-    );
-  }
+  const canvas = document.createElement("canvas");
+  canvas.width  = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+
+  const ctx = canvas.getContext("2d");
+
+  // białe tło – bardzo ważne przy zmianie PNG → JPEG
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.drawImage(img, 0, 0);
+
+  // JPEG + rozsądna jakość (0.85–0.92)
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+
+  pdf.addImage(
+    dataUrl,
+    "JPEG",                                 // ← musi być wielkimi literami "JPEG"
+    node.x(),
+    node.y(),
+    node.width()  * (node.scaleX() || 1),   // bezpieczniejsze niż node.scaleX()
+    node.height() * (node.scaleY() || 1)    // ↓ to samo
+  );
+}
 });
 
   }
 
   pdf.save("katalog_canva_editable.pdf");
 };
+
 
 
 
