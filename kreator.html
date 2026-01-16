@@ -164,19 +164,26 @@
 
       <!-- PDF BUTTONS – TYLKO Generuj PDF i Ustawienia katalogu -->
       <div class="pdf-buttons" style="margin-top: 20px; display:flex; gap:12px;">
+
     <button id="pdfButton" class="btn-primary" disabled>
         <i class="fas fa-file-pdf"></i> Generuj PDF
+    </button>
+    
+
+    <!-- 🔥 NOWY PRZYCISK -->
+    <button id="canvaPdfButton" class="btn-primary" style="background:#00a87d;">
+        <i class="fas fa-file-export"></i> Export do Canva
     </button>
 
     <button id="catalogSettingsBtn" class="btn-primary">
         <i class="fas fa-cog"></i> Ustawienia katalogu
     </button>
 
-    <!-- 🔥 NOWY PRZYCISK ZAPISZ PROJEKT -->
     <button id="saveProjectBtn" class="btn-primary" style="background:#0077ff;">
         <i class="fas fa-save"></i> Zapisz projekt
     </button>
 </div>
+
 
     </div>
 
@@ -207,6 +214,8 @@
 
 <!-- Konva -->
 <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+<!-- Konva SVG EXPORT (Canva support) -->
+<script src="https://unpkg.com/konva-svg@1.0.0/konva-svg.min.js"></script>
 
 <!-- Fabric -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
@@ -221,7 +230,7 @@
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 
 <!-- Rysowanie -->
- 
+ <script src="https://unpkg.com/konva-free-draw@1.0.0/konva-free-draw.min.js"></script>
 
 
 <!-- 🔥 POPRAWNA I JEDYNA Inicjalizacja Firebase -->
@@ -320,7 +329,7 @@ console.log("🔥 Firebase + Firestore poprawnie zainicjalizowane!");
 <script src="okladka.js"></script>
 <script src="dodajstrone.js"></script>
 <script src="eangenerator.js"></script>
-
+<script src="rysowanie.js"></script>
 
 
 <!-- 🔥 3. Save/load system -->
@@ -376,6 +385,7 @@ console.log("🔥 Firebase + Firestore poprawnie zainicjalizowane!");
       const importImagesBtn = document.getElementById('importImagesBtn');
       const pdfButton = document.getElementById('pdfButton');
       const catalogSettingsBtn = document.getElementById('catalogSettingsBtn');
+const canvaPdfButton = document.getElementById('canvaPdfButton');
 
       if (importExcelBtn) {
         importExcelBtn.onclick = () => {
@@ -391,12 +401,26 @@ console.log("🔥 Firebase + Firestore poprawnie zainicjalizowane!");
         };
       }
 
-      if (pdfButton) {
-        pdfButton.onclick = () => {
-          if (typeof generatePDF === 'function') generatePDF();
-          else console.error('generatePDF nie załadowane');
-        };
-      }
+   // Zmień ten fragment:
+if (pdfButton) {
+  pdfButton.onclick = () => {
+    if (typeof window.generatePDF === 'function') {
+      window.generatePDF();
+    } else {
+      console.error('generatePDF nie jest dostępne');
+    }
+  };
+}
+if (canvaPdfButton) {
+  canvaPdfButton.onclick = () => {
+    if (typeof window.generateCanvaPDF === 'function') {
+      window.generateCanvaPDF();
+    } else {
+      console.error('generateCanvaPDF nie jest dostępne');
+    }
+  };
+}
+
 
       const excelFile = document.getElementById('excelFile');
       if (excelFile) {
