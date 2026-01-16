@@ -520,16 +520,18 @@ const perPage = COLS * ROWS;
         const ws = wb.Sheets[wb.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }).slice(1);
 
-        allProducts = json.map(row => ({
-    INDEKS: String(row[0] || '').trim(),
-    NAZWA: String(row[1] || '').trim(),
-    CENA: String(row[2] || '').trim(),
-    'KOD EAN': String(row[3] || '').trim(),
-    TNZ: String(row[4] || '').trim(),   // ⬅️ DODANE
-    RANKING: String(row[5] || '').trim(),
-    LOGO: String(row[6] || '').trim(),
-    KRAJPOCHODZENIA: String(row[7] || '').trim()
+  allProducts = json.map(row => ({
+    INDEKS: String(row[0] || '').trim(),        // A
+    NAZWA: String(row[1] || '').trim(),         // B
+    JEDNOSTKA: String(row[2] || '').trim(),     // C  ✅ NOWE
+    CENA: String(row[3] || '').trim(),          // D
+    'KOD EAN': String(row[4] || '').trim(),     // E
+    TNZ: String(row[5] || '').trim(),           // F
+    RANKING: String(row[6] || '').trim(),       // G
+    LOGO: String(row[7] || '').trim(),          // H
+    KRAJPOCHODZENIA: String(row[8] || '').trim()// I
 }))
+
 
 
         pages.forEach(p => {
@@ -811,7 +813,7 @@ stage.on('mouseup.marquee', () => {
     if (nodes.length > 0) {
         page.selectedNodes = nodes;
         page.transformer.nodes(nodes);
-        highlightSelection();
+        
         showFloatingButtons();
     } else {
         page.selectedNodes = [];
@@ -955,7 +957,7 @@ stage.on('dragmove', () => {
 
 stage.on('dragend', (e) => {
     page.layer.find('.selectionOutline').forEach(n => n.destroy());
-    highlightSelection();
+    
 
     const node = e.target;
     if (!node.draggable()) return;
@@ -1348,19 +1350,27 @@ window.hideFloatingButtons = hideFloatingButtons;
             document.removeEventListener('keydown', escHandler);
         }
     };
+    if (!window._escHandlerBound) {
     document.addEventListener('keydown', escHandler);
+    window._escHandlerBound = true;
+}
+
 // ===============================================
 // PRIORYTET NAJMNIEJSZEGO OBIEKTU POD KURSOREM
 // ===============================================
 stage.on("mousedown.pickSmallest", (e) => {
+
+    // 🔥 FIX – tylko aktywna strona
+    if (document.activeStage !== stage) return;
+
     const pos = stage.getPointerPosition();
     if (!pos) return;
 
     const page = pages.find(p => p.stage === stage);
     if (!page) return;
 
-    // pobieramy WSZYSTKIE obiekty pod kursorem
     const hits = stage.getAllIntersections(pos);
+
 
     if (hits.length === 0) return;
 
@@ -1433,7 +1443,7 @@ page.selectedNodes = [autoTarget];
     // === zastosowanie zmiany do transformera + outline ===
     page.transformer.nodes(page.selectedNodes);
     page.layer.find(".selectionOutline").forEach(n => n.destroy());
-    highlightSelection();
+   
 
     if (page.selectedNodes.length > 0) {
         showFloatingButtons();
@@ -1450,7 +1460,7 @@ page.selectedNodes = [autoTarget];
     stage.on('transformstart', () => {
    // 🔥 usuń stare obrysy i dodaj nowe zgodne z aktualnym rozmiarem
 page.layer.find('.selectionOutline').forEach(n => n.destroy());
-highlightSelection();
+
 
 
     page._oldTransformBox = page.transformer.getClientRect();
@@ -1467,7 +1477,10 @@ highlightSelection();
     drawPage(page);
 
     setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('canvasCreated', { detail: stage }));
+        if (document.activeStage === stage || !document.activeStage) {
+    window.dispatchEvent(new CustomEvent('canvasCreated', { detail: stage }));
+}
+
     }, 100);
 
     applyZoomToPage(page, currentZoom);
@@ -2028,51 +2041,101 @@ if (textObj.height() < 28) textObj.height(28);
         indexObj.moveToTop();
         enableEditableText(textObj, page);
 
-        // === CENA ===
+      // === CENA (CANVA STYLE – GROUP) ===
 if (showCena && p.CENA) {
 
     const currency = page.settings.currency || 'euro';
-    const priceText = currency === 'euro' ? `${p.CENA}€` : `£${p.CENA}`;
 
-   // ================================
-// 🔒 CENA – POZYCJA STAŁA OD BOXA
-// ================================
+    // --- rozbij cenę ---
+    let raw = String(p.CENA).replace(',', '.');
+    let [main, decimal] = raw.split('.');
+    decimal = decimal ? decimal.padEnd(2, '0') : '00';
 
-// pozycja ceny liczona od DOŁU boxa
-let priceY;
+    const packUnit = (p.JEDNOSTKA || 'SZT.').toUpperCase();
 
-// layout 6
-if (window.LAYOUT_MODE === "layout6") {
-    priceY = y + BH_dynamic - 120;
-}
+let unitLabel = 'SZT.';
+if (packUnit === 'KG') unitLabel = 'KG';
 
-// layout 8
-if (window.LAYOUT_MODE === "layout8"){
-    priceY = y + BH_dynamic - 115;
-}
+let unit = currency === 'euro'
+    ? `€ / ${unitLabel}`
+    : `£ / ${unitLabel}`;
 
 
+    // --- pozycja Y liczona od BOXA ---
+    let priceY;
+    if (window.LAYOUT_MODE === "layout6") {
+        priceY = y + BH_dynamic - 130;
+    }
+    if (window.LAYOUT_MODE === "layout8") {
+        priceY = y + BH_dynamic - 135;
+    }
 
-    const priceObj = new Konva.Text({
-        x: x + BW_dynamic / 1 - 150,
+    // === GROUPA CENY (JEDEN OBIEKT!) ===
+    const priceGroup = new Konva.Group({
+        x: x + BW_dynamic - 150,
         y: priceY,
-        text: priceText,
-        fontSize: settings.priceSize,
-        fill: '#000000',
-        fontFamily: settings.fontFamily,
-        align: 'center',
-        width: 80,
         draggable: true,
         listening: true,
+
         isProductText: true,
         isPrice: true,
-        slotIndex: i
+        isPriceGroup: true,
+        slotIndex: i,
+
+        name: "priceGroup"
     });
 
-    layer.add(priceObj);
-    priceObj.moveToTop();
-    enableEditableText(textObj, page);
+    // === GŁÓWNA CENA ===
+    const priceMain = new Konva.Text({
+        text: main,
+fontSize: Math.round(settings.priceSize * 1.9), // np. +30%
+        fontFamily: settings.fontFamily,
+        fill: '#000000',
+        fontStyle: 'bold'
+    });
+
+    // === GROSZE ===
+    const priceDecimal = new Konva.Text({
+        text: decimal,
+        fontSize: Math.round(settings.priceSize * 0.55),
+        fontFamily: settings.fontFamily,
+        fill: '#000000',
+        x: priceMain.width() + 4,
+        y: priceMain.height() * 0.10
+
+    });
+
+    // === WALUTA / SZT ===
+    const priceUnit = new Konva.Text({
+  text: unit,
+
+  fontSize: Math.round(settings.priceSize * 0.35),
+  fontFamily: settings.fontFamily,
+  fill: '#000000',
+  x: priceMain.width() + 4,
+  y: priceDecimal.height() * 1.5,
+  name: 'priceUnit'   // 🔥 TO JEST KLUCZ
+});
+
+
+    // === SKŁADANIE GRUPY ===
+    priceGroup.add(priceMain, priceDecimal, priceUnit);
+    layer.add(priceGroup);
+    priceGroup.moveToTop();
+
+    // 🔥 KLUCZ: transformer MA ŁAPAĆ TYLKO GROUP
+    priceGroup.on('click tap', (e) => {
+        e.cancelBubble = true;
+        page.selectedNodes = [priceGroup];
+        page.transformer.nodes([priceGroup]);
+        page.layer.find('.selectionOutline').forEach(n => n.destroy());
+        
+        showFloatingButtons();
+        page.layer.batchDraw();
+        page.transformerLayer.batchDraw();
+    });
 }
+
 
 
         // === ZDJĘCIE ===
@@ -2757,6 +2820,124 @@ floatingBtnStyle.textContent = `
     }
 `;
 document.head.appendChild(floatingBtnStyle);
+// =====================================================
+// PDF CANVA – OBIEKTOWY (EDYTOWALNY)
+// =====================================================
+window.generateCanvaPDF = async function () {
+
+    if (!pages.length) {
+        alert("Brak stron");
+        return;
+    }
+
+    const pdf = new jsPDF({
+        orientation: "p",
+        unit: "px",
+        format: [W, H]
+    });
+
+    for (let pi = 0; pi < pages.length; pi++) {
+        const page = pages[pi];
+
+        if (pi > 0) pdf.addPage();
+
+        // === TŁO STRONY ===
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, W, H, "F");
+
+        // === ITERACJA PO OBIEKTACH KONVA ===
+        page.layer.getChildren().forEach(node => {
+
+            // =====================
+            // BOX
+            // =====================
+           // wyraźny box jak w Canvie
+pdf.setDrawColor(180);          // ciemniejsza ramka
+pdf.setLineWidth(2);            // grubsza linia
+pdf.setFillColor(250, 250, 250); // lekko szare tło
+
+pdf.roundedRect(
+  x,
+  y,
+  w,
+  h,
+  14,
+  14,
+  "FD"
+);
+
+
+            // =====================
+            // TEKST (NAZWA, INDEKS)
+            // =====================
+            if (node instanceof Konva.Text && node.getAttr("isProductText")) {
+
+                pdf.setFont("helvetica", "normal");
+                pdf.setFontSize(node.fontSize());
+                pdf.setTextColor(0);
+
+                pdf.text(
+                    node.text(),
+                    node.x(),
+                    node.y() + node.fontSize()
+                );
+            }
+
+            // === CENA – GROUP (KONIECZNIE TU!) ===
+if (node instanceof Konva.Group && node.getAttr("isPriceGroup")) {
+
+  node.getChildren().forEach(t => {
+    if (!(t instanceof Konva.Text)) return;
+
+    pdf.setFont(
+      "helvetica",
+      t.fontStyle() === "bold" ? "bold" : "normal"
+    );
+    pdf.setFontSize(t.fontSize());
+    pdf.setTextColor(0);
+
+    pdf.text(
+      t.text(),
+      node.x() + t.x(),
+      node.y() + t.y() + t.fontSize()
+    );
+  });
+}
+
+
+            // =====================
+            // OBRAZY (produkt, flagi, TNZ)
+            // =====================
+            if (node instanceof Konva.Image) {
+                const img = node.image();
+                if (!img) return;
+
+                try {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0);
+
+                    const dataURL = canvas.toDataURL("image/png");
+
+                    pdf.addImage(
+                        dataURL,
+                        "PNG",
+                        node.x(),
+                        node.y(),
+                        node.width() * node.scaleX(),
+                        node.height() * node.scaleY()
+                    );
+                } catch (e) {
+                    console.warn("Nie udało się dodać obrazu", e);
+                }
+            }
+        });
+    }
+
+    pdf.save("katalog_canva_editable.pdf");
+};
 
 
 // === UNDO/REDO — TYLKO TEKST ===
@@ -3332,7 +3513,141 @@ function hideAIOverlay() {
 }
 
     console.log("✅ Layout ZASTOSOWANY:", layout);
-};//kod dziala dobrze z poprawkami :)
+};
+// =====================================================
+// PDF CANVA – OBIEKTOWY (EDYTOWALNY W CANVA)
+// =====================================================
+window.generateCanvaPDF = async function () {
+
+  if (!window.pages || !window.pages.length) {
+    alert("Brak stron do eksportu");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "px",
+    format: [W, H]
+  });
+
+  for (let pi = 0; pi < pages.length; pi++) {
+    const page = pages[pi];
+    if (pi > 0) pdf.addPage();
+
+    // białe tło
+    pdf.setFillColor(255, 255, 255);
+    pdf.rect(0, 0, W, H, "F");
+
+   page.layer.getChildren().forEach(node => {
+
+  // === BOX (CANVA STYLE – FAKE SHADOW) ===
+// === BOX (CANVA STYLE – FAKE SHADOW + SOFT BORDER) ===
+if (node.getAttr && node.getAttr("isBox")) {
+
+  const x = node.x();
+  const y = node.y();
+  const w = node.width();
+  const h = node.height();
+  const r = 14;
+
+  // 1️⃣ CIEŃ (FAKE SHADOW)
+  pdf.setFillColor(0, 0, 0);
+  pdf.setLineWidth(0);
+  pdf.setGState(new pdf.GState({ opacity: 0.12 }));
+
+  pdf.roundedRect(
+    x,
+    y + 8,
+    w,
+    h,
+    r,
+    r,
+    "F"
+  );
+
+  pdf.setGState(new pdf.GState({ opacity: 1 }));
+
+  // 2️⃣ BOX GŁÓWNY – DELIKATNA RAMKA
+  pdf.setFillColor(255, 255, 255);
+  pdf.setDrawColor(210, 210, 210); // 👈 jasny szary (Canva)
+  pdf.setLineWidth(1.2);
+
+  pdf.roundedRect(
+    x,
+    y,
+    w,
+    h,
+    r,
+    r,
+    "FD"
+  );
+}
+
+
+
+  // === TEKST ===
+  if (node instanceof Konva.Text) {
+    pdf.setFont("helvetica", node.fontStyle() === "bold" ? "bold" : "normal");
+    pdf.setFontSize(node.fontSize());
+    pdf.setTextColor(0);
+
+    const maxWidth = node.width() || 300;
+    const lines = pdf.splitTextToSize(node.text(), maxWidth);
+    pdf.setLineHeightFactor(1.25);
+
+    pdf.text(
+      lines,
+      node.x(),
+      node.y() + node.fontSize()
+    );
+  }
+
+  // === 🔥 CENA (GROUP) ===
+  if (node instanceof Konva.Group && node.getAttr("isPriceGroup")) {
+    node.getChildren().forEach(t => {
+      if (!(t instanceof Konva.Text)) return;
+
+      pdf.setFont(
+        "helvetica",
+        t.fontStyle() === "bold" ? "bold" : "normal"
+      );
+      pdf.setFontSize(t.fontSize());
+      pdf.setTextColor(0);
+
+      pdf.text(
+        t.text(),
+        node.x() + t.x(),
+        node.y() + t.y() + t.fontSize()
+      );
+    });
+  }
+
+  // === OBRAZ ===
+  if (node instanceof Konva.Image && node.image()) {
+    const img = node.image();
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.getContext("2d").drawImage(img, 0, 0);
+
+    pdf.addImage(
+      canvas.toDataURL("image/png"),
+      "PNG",
+      node.x(),
+      node.y(),
+      node.width() * node.scaleX(),
+      node.height() * node.scaleY()
+    );
+  }
+});
+
+  }
+
+  pdf.save("katalog_canva_editable.pdf");
+};
+
 
 
 
