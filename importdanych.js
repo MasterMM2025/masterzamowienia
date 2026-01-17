@@ -1630,7 +1630,8 @@ if (p.TNZ && p.TNZ.toString().trim().toLowerCase() === "x") {
 
     loadTNZImage((img) => {
 
-        const badgeScale = window.LAYOUT_MODE === "layout8" ? 0.085 : 0.11;
+        const badgeScale = (window.LAYOUT_MODE === "layout8" ? 0.085 : 0.11) * 2;
+
 
         // ================================
         // POZYCJA TNZ – OSOBNO DLA LAYOUTÓW
@@ -1640,14 +1641,14 @@ if (p.TNZ && p.TNZ.toString().trim().toLowerCase() === "x") {
 
         // layout 6
         if (window.LAYOUT_MODE === "layout6") {
-            tnzOffsetX = -255;   // lewo / prawo
-            tnzOffsetY = -15;    // góra / dół
+            tnzOffsetX = -320;   // lewo / prawo
+            tnzOffsetY = 48;    // góra / dół
         }
 
         // layout 8
         if (window.LAYOUT_MODE === "layout8") {
-            tnzOffsetX = -280;   // lewo / prawo
-            tnzOffsetY = -15;    // góra / dół
+            tnzOffsetX = -330;   // lewo / prawo
+            tnzOffsetY = 28;    // góra / dół
         }
 
         const tnzBadge = new Konva.Image({
@@ -3604,25 +3605,50 @@ if (node.getAttr && node.getAttr("isBox")) {
     );
   }
 
-  // === 🔥 CENA (GROUP) ===
-  if (node instanceof Konva.Group && node.getAttr("isPriceGroup")) {
-    node.getChildren().forEach(t => {
-      if (!(t instanceof Konva.Text)) return;
+// === 🔥 CENA (GROUP) – POPRAWIONE 1:1 ===
+if (node instanceof Konva.Group && node.getAttr("isPriceGroup")) {
 
-      pdf.setFont(
-        "helvetica",
-        t.fontStyle() === "bold" ? "bold" : "normal"
-      );
-      pdf.setFontSize(t.fontSize());
-      pdf.setTextColor(0);
+  node.getChildren().forEach(t => {
+    if (!(t instanceof Konva.Text)) return;
 
-      pdf.text(
-        t.text(),
-        node.x() + t.x(),
-        node.y() + t.y() + t.fontSize()
-      );
-    });
-  }
+    const abs = t.getAbsolutePosition();
+    let xOffset = 0;
+    let yOffset = 0;
+
+    const text = t.text();
+    const size = t.fontSize();
+
+    // 🔹 GROSZE "45" – tylko w LEWO
+    if (/^\d+$/.test(text) && size < 30) {
+      xOffset = -14;   // reguluj 10–18
+    }
+
+    // 🔹 WALUTA / SZT. – jak wcześniej + delikatnie w górę
+    if (text.includes("€") || text.includes("/")) {
+      xOffset = -12;   // jak było
+      yOffset = -3;    // 🔥 DELIKATNE PODNIESIENIE
+      // -2 bardzo subtelnie
+      // -3 / -4 idealne wizualnie
+    }
+
+    pdf.setFont(
+      "helvetica",
+      t.fontStyle() === "bold" ? "bold" : "normal"
+    );
+    pdf.setFontSize(size);
+    pdf.setTextColor(0);
+
+    pdf.text(
+      text,
+      abs.x + xOffset,
+      abs.y + yOffset,
+      { baseline: "top" }
+    );
+  });
+}
+
+
+
 
   // === OBRAZ ===
   if (node instanceof Konva.Image && node.image()) {
@@ -3658,9 +3684,3 @@ if (node.getAttr && node.getAttr("isBox")) {
 
   pdf.save("katalog_canva_editable.pdf");
 };
-
-
-
-
-
-
