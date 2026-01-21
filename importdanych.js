@@ -49,6 +49,26 @@ const COUNTRY_PL_BADGE_URL =
   "https://firebasestorage.googleapis.com/v0/b/pdf-creator-f7a8b.firebasestorage.app/o/CREATOR%20BASIC%2FPolska.png?alt=media";
 
 window.COUNTRY_PL_IMAGE = null;
+// ============================================
+// 🔒 NORMALIZACJA ZAZNACZENIA (dziecko → GROUP)
+// ============================================
+function normalizeSelection(nodes) {
+    if (!Array.isArray(nodes)) return [];
+
+    return nodes
+        .map(n => {
+            if (
+                n &&
+                n.getParent &&
+                n.getParent() instanceof Konva.Group &&
+                n.getParent().getAttr("isPriceGroup")
+            ) {
+                return n.getParent(); // 🔥 zawsze cena jako całość
+            }
+            return n;
+        })
+        .filter((v, i, a) => v && a.indexOf(v) === i);
+}
 
 
 
@@ -798,7 +818,14 @@ stage.on('mouseup.marquee', () => {
     if (node === selectionRect) return false;
 
     // Wszystko inne co jest draggable lub tekst/obraz/box
-    if (node.draggable() || node instanceof Konva.Text || node instanceof Konva.Image || node instanceof Konva.Rect) {
+    if (
+    node instanceof Konva.Group ||        // 🔥 DODANE
+    node.draggable() ||
+    node instanceof Konva.Text ||
+    node instanceof Konva.Image ||
+    node instanceof Konva.Rect
+) {
+
         const box = node.getClientRect();
         return Konva.Util.haveIntersection(area, box);
     }
@@ -1094,27 +1121,19 @@ btnDelete.onclick = () => {
           btn.onclick = (ev) => {
               ev.stopPropagation();
               const action = btn.dataset.action;
-              const obj = page.selectedNodes[0];
+              page.selectedNodes = normalizeSelection(page.selectedNodes);
+const obj = page.selectedNodes[0];
+if (!obj) return;
+
               if (!obj) return;
   
-              if (action === 'copy') {
-    window.globalClipboard = page.selectedNodes.map(n => {
-        
-        // Clone Konva node
-        const clone = n.clone();
+ if (action === 'copy') {
 
-        // Jeśli to BARCODE → ZAWSZE twórz nowy obraz!!!
-        if (n.getAttr("isBarcode")) {
-            const origSrc = n.getAttr("barcodeOriginalSrc");
-            if (origSrc) {
-                const img = new Image();
-                img.src = origSrc;
+    const nodes = normalizeSelection(page.selectedNodes);
 
-                clone.image(img);
-                clone.setAttr("barcodeOriginalSrc", origSrc);
-            }
-        }
-
+    window.globalClipboard = nodes.map(n => {
+        const clone = n.clone({ draggable: true, listening: true });
+        clone.getChildren?.().forEach(c => c.listening(true));
         return clone;
     });
 
@@ -1122,10 +1141,16 @@ btnDelete.onclick = () => {
     pages.forEach(p => p.stage.container().style.cursor = 'copy');
 }
 
+
               if (action === 'cut') {
     if (page.selectedNodes.length > 0) {
         // 📌 zapisujemy WSZYSTKIE zaznaczone obiekty do schowka
-        window.globalClipboard = page.selectedNodes.map(n => n.clone());
+        window.globalClipboard = page.selectedNodes.map(n => {
+    const clone = n.clone({ listening: true, draggable: true });
+    clone.getChildren?.().forEach(c => c.listening(true));
+    return clone;
+});
+
         window.globalPasteMode = true;
 
         // 📌 kasujemy wszystkie zaznaczone elementy na stronie
@@ -1370,6 +1395,12 @@ stage.on("mousedown.pickSmallest", (e) => {
     if (!page) return;
 
     const hits = stage.getAllIntersections(pos);
+// 🔥 jeśli kliknęliśmy element ceny – zawsze bierz GROUP
+const priceGroup = hits.find(n => n.getAttr && n.getAttr("isPriceGroup"));
+if (priceGroup) {
+    page._priorityClickTarget = priceGroup;
+    return;
+}
 
 
     if (hits.length === 0) return;
@@ -1409,9 +1440,11 @@ stage.on("click tap", (e) => {
 
     // 🔥 sprawdź, czy obiekt jest wybieralny
     const isSelectable =
-        target instanceof Konva.Text ||
-        target instanceof Konva.Image ||
-        (target instanceof Konva.Rect && !target.getAttr("isPageBg"));
+    target instanceof Konva.Text ||
+    target instanceof Konva.Image ||
+    target instanceof Konva.Group ||   // 🔥 DODANE
+    (target instanceof Konva.Rect && !target.getAttr("isPageBg"));
+
 
     if (!isSelectable) {
         // klik w pusty obszar — usuń zaznaczenie
@@ -2048,9 +2081,20 @@ if (showCena && p.CENA) {
     const currency = page.settings.currency || 'euro';
 
     // --- rozbij cenę ---
-    let raw = String(p.CENA).replace(',', '.');
-    let [main, decimal] = raw.split('.');
-    decimal = decimal ? decimal.padEnd(2, '0') : '00';
+    // 🔒 NORMALIZACJA CENY – MAX 2 MIEJSCA PO PRZECINKU
+let raw = String(p.CENA)
+.replace(',', '.')
+.replace(/[^0-9.]/g, '');
+
+let value = parseFloat(raw);
+
+if (isNaN(value)) value = 0;
+
+// zawsze max 2 miejsca po przecinku
+let fixed = value.toFixed(2);
+
+let [main, decimal] = fixed.split('.');
+
 
     const packUnit = (p.JEDNOSTKA || 'SZT.').toUpperCase();
 
@@ -2125,16 +2169,7 @@ fontSize: Math.round(settings.priceSize * 1.9), // np. +30%
     priceGroup.moveToTop();
 
     // 🔥 KLUCZ: transformer MA ŁAPAĆ TYLKO GROUP
-    priceGroup.on('click tap', (e) => {
-        e.cancelBubble = true;
-        page.selectedNodes = [priceGroup];
-        page.transformer.nodes([priceGroup]);
-        page.layer.find('.selectionOutline').forEach(n => n.destroy());
-        
-        showFloatingButtons();
-        page.layer.batchDraw();
-        page.transformerLayer.batchDraw();
-    });
+    
 }
 
 
