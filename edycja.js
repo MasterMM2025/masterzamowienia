@@ -449,12 +449,32 @@ function createPageEditPanel() {
 }
 
 function applyStyle(obj, style) {
+
+  // 🔹 jeśli to GROUP (np. cena)
+if (obj instanceof Konva.Group) {
+  obj.getChildren().forEach(child => {
+    if (!(child instanceof Konva.Text)) return;
+
+    // styl TAK, rozmiar NIE
+    child.fill(style.color);
+    child.fontFamily(style.fontFamily);
+    child.fontStyle(computeStyle(style));
+    child.setAttr('underline', style.underline);
+  });
+  return;
+}
+
+
+
+
+  // 🔹 jeśli to zwykły Text
   obj.fontSize(style.size);
   obj.fontFamily(style.fontFamily);
   obj.fill(style.color);
   obj.fontStyle(computeStyle(style));
   obj.setAttr('underline', style.underline);
 }
+
 window.openPageEdit = function(page) {
   currentPage = page;
   const panel = createPageEditPanel();
@@ -567,29 +587,11 @@ targetPages.forEach(p => {
     applyStyle(obj, p.settings.indexStyle);
   }
 
-  if (isPrice) {
-    applyStyle(obj, p.settings.priceStyle);
-
-    // Aktualizacja waluty
-    let priceText = obj.text().replace(/[^\d.,]/g, '').trim();
-
-let finalPrice = '';
-
-if (selectedCurrency === 'EUR') {
-    // EURO → 2.45 €
-    finalPrice = priceText + ' €';
-
-} else if (selectedCurrency === 'GBP') {
-    // FUNT → £2.45
-    finalPrice = '£' + priceText;
-
-} else {
-    // PLN → 2.45 zł (lub inny format, jeśli wolisz)
-    finalPrice = priceText + ' zł';
+if (isPrice) {
+  applyStyle(obj, p.settings.priceStyle);
+  updatePriceCurrency(obj, selectedCurrency);
+  applyPriceScale(obj, p.settings.priceStyle.size);
 }
-
-obj.text(finalPrice);
-  }
 
   if (isRating) {
     applyStyle(obj, p.settings.ratingStyle);
@@ -732,6 +734,27 @@ function addAnotherImage(page, x, y) {
     reader.readAsDataURL(file);
   };
   input.click();
+}
+function applyPriceScale(priceGroup, priceSize) {
+  if (!(priceGroup instanceof Konva.Group)) return;
+
+  const BASE_SIZE = 24;
+
+  const scale = priceSize / BASE_SIZE;
+
+  priceGroup.scaleX(scale);
+  priceGroup.scaleY(scale);
+}
+
+function updatePriceCurrency(priceGroup, currency) {
+  if (!(priceGroup instanceof Konva.Group)) return;
+
+  const unit = priceGroup.findOne('.priceUnit');
+  if (!unit) return;
+
+  if (currency === 'GBP') unit.text('£ / SZT.');
+  else if (currency === 'EUR') unit.text('€ / SZT.');
+  else if (currency === 'PLN') unit.text('zł / SZT.');
 }
 
 // === INICJALIZACJA + KLUCZOWA ZMIANA: edytowalny każdy tekst z isEditable ===
