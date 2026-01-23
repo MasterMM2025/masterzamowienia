@@ -752,10 +752,19 @@ function updatePriceCurrency(priceGroup, currency) {
   const unit = priceGroup.findOne('.priceUnit');
   if (!unit) return;
 
-  if (currency === 'GBP') unit.text('£ / SZT.');
-  else if (currency === 'EUR') unit.text('€ / SZT.');
-  else if (currency === 'PLN') unit.text('zł / SZT.');
+  const text = unit.text(); // np. "€ / KG"
+  const parts = text.split(' '); 
+  if (parts.length < 2) return;
+
+  const unitPart = parts.slice(1).join(' '); // "/ KG"
+
+  let symbol = 'zł';
+  if (currency === 'EUR') symbol = '€';
+  if (currency === 'GBP') symbol = '£';
+
+  unit.text(`${symbol} ${unitPart}`);
 }
+
 
 // === INICJALIZACJA + KLUCZOWA ZMIANA: edytowalny każdy tekst z isEditable ===
 document.addEventListener('DOMContentLoaded', () => {
