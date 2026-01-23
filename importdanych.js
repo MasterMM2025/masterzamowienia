@@ -3655,8 +3655,10 @@ if (node instanceof Konva.Group && node.getAttr("isPriceGroup")) {
 
     // 🔹 GROSZE "45" – tylko w LEWO
     if (/^\d+$/.test(text) && size < 30) {
-      xOffset = -14;   // reguluj 10–18
-    }
+  xOffset = -8;   // było -14 → mniejsze cofnięcie
+  yOffset = 1;     // 🔥 minimalne opuszczenie groszy
+}
+
 
     // 🔹 WALUTA / SZT. – jak wcześniej + delikatnie w górę
     if (text.includes("€") || text.includes("/")) {
