@@ -129,10 +129,10 @@
         w: w * 0.39
       };
       const flagRect = {
-        // Flaga podniesiona JESZCZE lekko do GÓRY (mniejsza wartość Y).
-        x: slotX + w * 0.54,
-        y: y + h * 0.498,
-        w: w * 0.30,
+        // Flaga wyrównana do lewej krawędzi kodu kreskowego.
+        x: slotX + w * 0.48,
+        y: y + h * 0.745,
+        w: w * 0.34,
         h: h * 0.03
       };
       const barcodeRect = {
@@ -381,8 +381,16 @@
       });
     }
 
-    // Zachowujemy pozycje wyliczone wyzej (layout8), tylko ujednolicamy kolor.
-    texts.forEach((t) => t.fill("#ffffff"));
+    // Kolor tekstu ceny – ze stylu własnego (priceTextColor) lub domyślny biały
+    const priceTextColor = (group.getAttr("priceTextColor") != null && String(group.getAttr("priceTextColor")).trim() !== "")
+      ? String(group.getAttr("priceTextColor")).trim()
+      : "#ffffff";
+    texts.forEach((t) => t.fill(priceTextColor));
+
+    // Kolor koła – ze stylu własnego (priceBgColor) lub domyślny czerwony
+    const priceBgColor = (group.getAttr("priceBgColor") != null && String(group.getAttr("priceBgColor")).trim() !== "")
+      ? String(group.getAttr("priceBgColor")).trim()
+      : "#d71920";
 
     let bg = group.findOne((n) => n.getAttr && n.getAttr("isElegantPriceBg"));
     if (!bg) {
@@ -390,7 +398,7 @@
         x: centerX,
         y: centerY,
         radius,
-        fill: "#d71920",
+        fill: priceBgColor,
         listening: false
       });
       bg.setAttr("isElegantPriceBg", true);
@@ -400,7 +408,7 @@
       bg.x(centerX);
       bg.y(centerY);
       bg.radius(radius);
-      bg.fill("#d71920");
+      bg.fill(priceBgColor);
     }
 
     group.setAttr("isElegantPriceStyled", true);
