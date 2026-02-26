@@ -183,9 +183,18 @@
       });
 
       layer.add(konvaImg);
-      layer.batchDraw();
 
-      attachTransformer(stage, konvaImg);
+      // 🔥 używaj GŁÓWNEGO transformera (jak wszystkie inne elementy)
+      const page = pages.find(p => p.stage === stage);
+      if (page) {
+        page.selectedNodes = [konvaImg];
+        page.transformer.nodes([konvaImg]);
+        page.layer.batchDraw();
+        page.transformerLayer.batchDraw();
+        document.activeStage = stage;
+      } else {
+        layer.batchDraw();
+      }
     };
     img.src = originalCopy;
   }
@@ -238,4 +247,3 @@
   }
 
 })();
-
