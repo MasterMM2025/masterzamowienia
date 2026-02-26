@@ -107,6 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// Udostępnij tryby globalnie (fallback)
+window.__sidebarModuleBound = true;
+window.enableAddTextMode = enableAddTextMode;
+window.enableAddImageMode = enableAddImageMode;
+
 
 
 function isWithinPageArea(x, y) {
@@ -158,10 +163,14 @@ function addTextAtPosition(page, x, y) {
   });
   page.layer.add(text);
   page.layer.batchDraw();
-  text.on('dblclick', (e) => {
-  e.cancelBubble = true; // zatrzymuje propagację
-  openTextEditor(text);
-});
+  if (typeof enableEditableText === "function") {
+    enableEditableText(text, page);
+  } else {
+    text.on('dblclick', (e) => {
+      e.cancelBubble = true;
+      openTextEditor(text);
+    });
+  }
 
 
 }
@@ -230,11 +239,28 @@ const s = Math.min(maxSize / img.width(), maxSize / img.height(), 1);
     listening: true,
 
     // 🔥 ULTRA WAŻNE — pozwala odróżnić od tła/koloru strony
-    isSidebarImage: true
+    isSidebarImage: true,
+    isDesignElement: true,
+    isEditable: true,
+    isSelectable: true,
+    isDraggable: true,
+    isPageBg: false,
+    name: "design-image"
     
     
 
   });
+
+  markAsEditable(img);
+  if (img.hitStrokeWidth) img.hitStrokeWidth(20);
+  if (img.hitFunc) {
+    img.hitFunc((ctx, shape) => {
+      ctx.beginPath();
+      ctx.rect(0, 0, shape.width(), shape.height());
+      ctx.closePath();
+      ctx.fillStrokeShape(shape);
+    });
+  }
 
   page.layer.add(img);
   page.layer.batchDraw();
@@ -856,12 +882,7 @@ kImg.hitStrokeWidth(20);
 
 
   page.layer.add(kImg);
-  // 🔥 Normalizacja obrazu — ramka będzie zawsze blisko
-kImg.width(kImg.width() * kImg.scaleX());
-kImg.height(kImg.height() * kImg.scaleY());
-kImg.scaleX(1);
-kImg.scaleY(1);
-kImg.zIndex(10);
+  kImg.zIndex(10);
 
   page.layer.batchDraw();
 });
@@ -933,12 +954,6 @@ kImg.hitStrokeWidth(20);
 
 
                 page.layer.add(kImg);
-                // 🔥 Normalizacja obrazu — ramka będzie zawsze blisko
-kImg.width(kImg.width() * kImg.scaleX());
-kImg.height(kImg.height() * kImg.scaleY());
-kImg.scaleX(1);
-kImg.scaleY(1);
-
                 page.layer.batchDraw();
             });
         }
@@ -949,7 +964,9 @@ elementsPanel.addEventListener('scroll', () => {
     elementsPanel.scrollTop + elementsPanel.clientHeight >=
     elementsPanel.scrollHeight - 120;
 
-  if (nearBottom) {
+  if (nearBottom && typeof window.renderNextElementsBatch === "function") {
+    window.renderNextElementsBatch();
+  } else if (nearBottom && typeof renderNextElementsBatch === "function") {
     renderNextElementsBatch();
   }
 });
