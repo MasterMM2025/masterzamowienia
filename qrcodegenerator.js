@@ -173,10 +173,25 @@
         listening: true
       });
 
-      layer.add(node);
-      layer.batchDraw();
+      node.setAttrs({
+        isBarcode: true,
+        barcodeOriginalSrc: src,
+        barcodeColor: "#000000"
+      });
 
-      attach(stage, node);
+      layer.add(node);
+
+      // 🔥 używaj GŁÓWNEGO transformera (jak wszystkie inne elementy)
+      const page = pages.find(p => p.stage === stage);
+      if (page) {
+        page.selectedNodes = [node];
+        page.transformer.nodes([node]);
+        page.layer.batchDraw();
+        page.transformerLayer.batchDraw();
+        document.activeStage = stage;
+      } else {
+        layer.batchDraw();
+      }
     };
 
     img.src = src;
