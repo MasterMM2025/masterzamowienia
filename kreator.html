@@ -16,50 +16,68 @@
   <!-- GÓRNY PASEK -->
   <div class="header-bar">
     <div class="header-left">
-      <div class="header-logo">Kreator</div>
-      <div class="header-title">Katalog produktów</div>
+      <a class="header-logo" id="homeLogo" href="kreator.html" data-start-url="kreator.html" aria-label="Strona startowa">
+        <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo">
+          <circle cx="13" cy="13" r="12" fill="#00c4b4"/>
+          <path d="M8 7h4.2c3 0 5.1 1.9 5.1 4.6 0 2.8-2.1 4.7-5.1 4.7H8V7zm3 2.6v4.1h1.2c1.3 0 2.1-.8 2.1-2.1 0-1.2-.8-2-2.1-2H11z" fill="#ffffff"/>
+        </svg>
+      </a>
+      <div class="header-title" id="projectTitle">Katalog produktów</div>
     </div>
-    <div class="header-center">
-      <button class="header-btn active"><i class="fas fa-edit"></i> Edytuj</button>
-      <button class="header-btn"><i class="fas fa-eye"></i> Podgląd</button>
-    </div>
+    <div class="header-center"></div>
     <div class="header-right">
-      <button class="share-btn"><i class="fas fa-share-alt"></i> Udostępnij</button>
+      <button class="share-btn" id="downloadProjectBtn"><i class="fas fa-download"></i> Pobierz projekt</button>
     </div>
   </div>
 
   <!-- SIDEBAR Z IKONAMI -->
   <div class="sidebar">
-    <!-- Dodaj tekst -->
-    <div class="sidebar-item" title="Dodaj tekst">
-      <i class="fas fa-plus"></i>
-      <i class="fas fa-font"></i>
-      <span class="sidebar-label">Dodaj tekst</span>
+    <!-- Nowy projekt -->
+    <div class="sidebar-item" id="newProjectBtn" title="Nowy projekt">
+      <i class="fas fa-file"></i>
+      <span class="sidebar-label">Nowy projekt</span>
     </div>
 
-    <!-- Dodaj zdjęcia -->
-    <div class="sidebar-item" title="Dodaj zdjęcia">
-      <i class="fas fa-plus"></i>
-      <i class="fas fa-images"></i>
-      <span class="sidebar-label">Dodaj zdjęcia</span>
+    <!-- Szybki kreator -->
+    <div class="sidebar-item" id="quickCreatorBtn" title="Szybki kreator">
+      <i class="fas fa-bolt"></i>
+      <span class="sidebar-label">Szybki kreator</span>
     </div>
-    <!-- Import PSD -->
-<div class="sidebar-item" title="Import PSD">
-  <i class="fas fa-file-image"></i>
-  <span class="sidebar-label">Import PSD</span>
-</div>
 
-    <!-- Dodaj element -->
-<div class="sidebar-item" id="addElementBtn" title="Dodaj element">
-  <i class="fas fa-plus"></i>
-  <i class="fas fa-shapes"></i>
-  <span class="sidebar-label">Dodaj element</span>
-</div>
+    <!-- Wybierz styl -->
+    <div class="sidebar-item" id="chooseStyleBtn" title="Wybierz styl">
+      <i class="fas fa-palette"></i>
+      <span class="sidebar-label">Wybierz styl</span>
+    </div>
+
+    <div class="sidebar-item" id="addCatalogProductsBtn" title="Dodaj produkty do katalogu">
+      <i class="fas fa-box-open"></i>
+      <span class="sidebar-label">Dodaj produkty do katalogu</span>
+    </div>
 
     <!-- Elementy zapisane -->
     <div class="sidebar-item" title="Elementy zapisane">
       <i class="fas fa-save"></i>
       <span class="sidebar-label">Elementy zapisane</span>
+    </div>
+
+    <!-- Dodaj tekst -->
+    <div class="sidebar-item" id="sidebarAddText" title="Dodaj tekst">
+      <i class="fas fa-font"></i>
+      <span class="sidebar-label">Dodaj tekst</span>
+    </div>
+
+    <!-- Dodaj zdjęcia -->
+    <div class="sidebar-item" id="sidebarAddImage" title="Dodaj zdjęcia">
+      <i class="fas fa-images"></i>
+      <span class="sidebar-label">Dodaj zdjęcia</span>
+    </div>
+    <!-- (usunięte: Import PSD) -->
+
+    <!-- Dodaj element -->
+    <div class="sidebar-item" id="addElementBtn" title="Dodaj element">
+      <i class="fas fa-shapes"></i>
+      <span class="sidebar-label">Dodaj element</span>
     </div>
 
     <!-- Przesyłanie danych -->
@@ -78,11 +96,6 @@
     <!-- Separator -->
     <div class="sidebar-separator"></div>
 
-    <!-- Opcje PDF (istniejące) -->
-    <div class="sidebar-item" title="Opcje PDF">
-      <i class="fas fa-cog"></i>
-      <span class="sidebar-label">Opcje PDF</span>
-    </div>
     <div class="sidebar-item" title="Kod EAN">
       <i class="fas fa-barcode"></i>
       <span class="sidebar-label">Kod EAN</span>
@@ -92,23 +105,29 @@
   <span class="sidebar-label">Kod QR</span>
 </div>
 
-    <div class="sidebar-item" title="Cena">
-      <i class="fas fa-euro-sign"></i>
-      <span class="sidebar-label">Cena</span>
-    </div>
-    <div class="sidebar-item" title="Ramki">
-      <i class="fas fa-border-all"></i>
-      <span class="sidebar-label">Ramki</span>
-    </div>
+    <!-- (usunięte: Opcje PDF / Cena / Ramki) -->
   </div>
 
   <!-- MAIN CONTENT -->
   <div class="main-content">
-    <div class="improved-panel">
+    <!-- START VIEW: zapisane projekty -->
+    <div id="startProjectsView" style="display:none;">
+      <div class="start-hero">
+        <div class="start-hero-title">Co dziś stworzysz?</div>
+        <div class="start-hero-sub">Wróć do ostatnich katalogów albo zacznij nowy projekt w kilka minut.</div>
+      </div>
+      <h2 class="panel-title start-title"><i class="fas fa-folder-open"></i> Ostatnie projekty</h2>
+      <div id="startProjectsList"></div>
+    </div>
+
+    <!-- EDITOR VIEW -->
+    <div id="editorView">
+    <div class="improved-panel" id="importPanel">
       <div class="panel-header">
         <h2 class="panel-title"><i class="fas fa-upload"></i> Import i ustawienia</h2>
       </div>
 
+      <div class="panel-body">
       <!-- EXCEL -->
       <div class="import-row">
         <div class="file-section">
@@ -160,6 +179,17 @@
             <input type="file" id="imageInput" accept="image/*" multiple>
           </div>
         </div>
+
+        <!-- DODAJ PUSTĄ STRONĘ -->
+        <div class="upload-card">
+          <div class="upload-zone" id="blankPageTile">
+            <i class="fas fa-file-circle-plus"></i>
+            <p>Dodaj stronę o tych samych wymiarach co strony z katalogu</p>
+            <button class="btn-primary" id="addBlankPageBtn" type="button">
+              <i class="fas fa-plus"></i> Dodaj pustą stronę
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- IMPORT ZDJĘĆ -->
@@ -168,15 +198,13 @@
       </div>
 
       <!-- PDF BUTTONS – TYLKO Generuj PDF i Ustawienia katalogu -->
-      <div class="pdf-buttons" style="margin-top: 20px; display:flex; gap:12px;">
+      <div class="pdf-buttons toolbar-actions">
 
     <button id="pdfButton" class="btn-primary" disabled>
         <i class="fas fa-file-pdf"></i> Generuj PDF
     </button>
     
-
-    <!-- 🔥 NOWY PRZYCISK -->
-    <button id="canvaPdfButton" class="btn-primary" style="background:#00a87d;">
+    <button id="canvaPdfButton" class="btn-primary">
         <i class="fas fa-file-export"></i> Export do Canva
     </button>
 
@@ -184,15 +212,112 @@
         <i class="fas fa-cog"></i> Ustawienia katalogu
     </button>
 
-    <button id="saveProjectBtn" class="btn-primary" style="background:#0077ff;">
+    <button id="saveProjectBtn" class="btn-primary">
         <i class="fas fa-save"></i> Zapisz projekt
     </button>
 </div>
 
+      </div>
 
+      <div class="panel-toggle-bottom">
+        <button class="panel-toggle" id="importPanelToggle" aria-label="Zwiń panel" title="Zwiń panel">
+          <span class="panel-toggle-icon">▴</span>
+          <span class="panel-toggle-text">Zwiń</span>
+        </button>
+      </div>
     </div>
 
     <div id="pagesContainer"></div>
+    </div>
+  </div>
+
+  <!-- SZYBKI KREATOR -->
+  <div id="quickCreatorModal" class="quick-modal" style="display:none;">
+    <div class="quick-modal-card">
+      <div class="quick-modal-header">
+        <h3>Szybki kreator</h3>
+        <button id="quickCreatorClose" class="quick-close">×</button>
+      </div>
+
+      <div class="quick-section">
+        <div class="quick-label">Układ</div>
+        <div class="quick-row">
+          <label class="quick-radio"><input type="radio" name="quickLayout" value="layout6" checked><span>Layout 6</span></label>
+          <label class="quick-radio"><input type="radio" name="quickLayout" value="layout8"><span>Layout 8</span></label>
+        </div>
+      </div>
+
+      <div class="quick-section">
+        <div class="quick-label">Import</div>
+        <div class="quick-grid">
+          <button id="quickExcelBtn" class="quick-btn" data-step="excel">Import Excel</button>
+          <button id="quickImagesBtn" class="quick-btn" data-step="images">Import zdjęć</button>
+          <button id="quickCoverBtn" class="quick-btn" data-step="cover">Import okładka</button>
+          <button id="quickBannerBtn" class="quick-btn" data-step="banner">Import baner</button>
+          <button id="quickBgBtn" class="quick-btn" data-step="bg">Import tło</button>
+        </div>
+        <div class="quick-hint">Zdjęcia importują się automatycznie po wyborze plików.</div>
+      </div>
+
+      <div class="quick-section">
+        <div class="quick-label">Ustawienia tekstów</div>
+        <div class="quick-grid-2">
+          <div>
+            <label class="quick-field">Waluta</label>
+            <select id="quickCurrency">
+              <option value="euro">€</option>
+              <option value="gbp">£</option>
+              <option value="pln">zł</option>
+            </select>
+          </div>
+          <div>
+            <label class="quick-field">Czcionka</label>
+            <select id="quickFont">
+              <option value="Arial">Arial</option>
+              <option value="Inter">Inter</option>
+              <option value="Poppins">Poppins</option>
+              <option value="Montserrat">Montserrat</option>
+            </select>
+          </div>
+          <div>
+            <label class="quick-field">Nazwa – rozmiar</label>
+            <input id="quickNameSize" type="number" min="6" max="40" value="12">
+          </div>
+          <div>
+            <label class="quick-field">Nazwa – kolor</label>
+            <input id="quickNameColor" type="color" value="#111111">
+          </div>
+          <div>
+            <label class="quick-field">Cena – rozmiar</label>
+            <input id="quickPriceSize" type="number" min="8" max="60" value="24">
+          </div>
+          <div>
+            <label class="quick-field">Cena – kolor</label>
+            <input id="quickPriceColor" type="color" value="#000000">
+          </div>
+          <div>
+            <label class="quick-field">Indeks – rozmiar</label>
+            <input id="quickIndexSize" type="number" min="6" max="30" value="14">
+          </div>
+          <div>
+            <label class="quick-field">Indeks – kolor</label>
+            <input id="quickIndexColor" type="color" value="#111111">
+          </div>
+          <div>
+            <label class="quick-field">Ranking – rozmiar</label>
+            <input id="quickRankSize" type="number" min="6" max="30" value="12">
+          </div>
+          <div>
+            <label class="quick-field">Ranking – kolor</label>
+            <input id="quickRankColor" type="color" value="#111111">
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button id="quickApplyBtn" class="quick-apply">Utwórz katalog</button>
+      </div>
+    </div>
   </div>
 
   <!-- UNDO/REDO BUTTONS -->
@@ -205,10 +330,46 @@
     </button>
   </div>
 
- <!-- ====================== BIBLIOTEKI ZEWNĘTRZNE ====================== -->
+  <!-- POBIERZ PROJEKT -->
+  <div id="downloadProjectModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000000; align-items:center; justify-content:center;">
+    <div style="width:520px; background:#fff; border-radius:16px; padding:20px; box-shadow:0 12px 40px rgba(0,0,0,0.25); font-family:Inter,Arial;">
+      <h3 style="margin:0 0 12px 0;">Pobierz projekt</h3>
+      <label>Nazwa pliku:</label>
+      <input id="downloadProjectName" type="text" placeholder="np. Rumunia_2026" style="width:100%; padding:8px; margin:6px 0 12px 0; border:1px solid #ccc; border-radius:8px;">
 
-<!-- PSD.js — DZIAŁAJĄCA wersja (lokalna), NIE CDN -->
-<script src="psd.min.js"></script>
+      <div style="margin:4px 0 12px 0;">
+        <div style="font-size:13px; font-weight:600; margin-bottom:6px;">Zakres stron</div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <label class="download-page-option">
+            <input type="radio" name="downloadPageMode" value="all" checked>
+            <span>Wszystkie</span>
+          </label>
+          <label class="download-page-option">
+            <input type="radio" name="downloadPageMode" value="custom">
+            <span>Wybrane</span>
+          </label>
+          <input id="downloadPageInput" type="text" placeholder="np. 1,3,5-7"
+                 style="flex:1; min-width:180px; padding:8px; border:1px solid #ccc; border-radius:8px;" disabled>
+        </div>
+        <div style="font-size:12px;color:#6b7280;margin-top:6px;">Kliknij opcję, a pole zakresu włączy się automatycznie.</div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-bottom:12px;">
+        <button id="downloadPdfBtn" class="btn-primary" style="flex:1; background:#2563eb;"><i class="fas fa-file-pdf"></i> PDF</button>
+        <button id="downloadCanvaBtn" class="btn-primary" style="flex:1; background:#10b981;"><i class="fas fa-file-export"></i> Canva</button>
+      </div>
+
+      <div style="font-size:12px; color:#6b7280; margin-bottom:14px;">
+        Chcesz zapisać projekt na później? Użyj przycisku „Zapisz projekt”.
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button id="downloadProjectSave" style="padding:8px 12px; border:none; border-radius:8px; background:#e5e7eb; cursor:pointer;">Zapisz projekt</button>
+        <button id="downloadProjectClose" style="padding:8px 12px; border:none; border-radius:8px; background:#111827; color:#fff; cursor:pointer;">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+ <!-- ====================== BIBLIOTEKI ZEWNĘTRZNE ====================== -->
 
 <!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -274,7 +435,7 @@ const firebaseConfig = {
 // 🔥 INICJALIZACJA
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
+const storage = getStorage(app, "gs://pdf-creator-f7a8b.firebasestorage.app");
 // ---------------------------------------------------------------
 // 🔥 DRUGA APLIKACJA FIREBASE – PDF-CREATOR-V2 (tylko zapisy projektów)
 // ---------------------------------------------------------------
@@ -292,9 +453,12 @@ const app2 = initializeApp(firebaseConfig2, "secondary");
 
 // 🔥 Firestore z DRUGIEGO projektu
 const db2 = getFirestore(app2);
+// 🔥 Storage z DRUGIEGO projektu (na projekty)
+const storage2 = getStorage(app2, "gs://pdf-creator-v2.firebasestorage.app");
 
 // 🔥 Zapisujemy globalnie, saveall.js będzie tego używać
 window.firestoreV2 = db2;
+window.firebaseStorageV2 = storage2;
 
 console.log("🔥 PDF-CREATOR-V2 Firestore READY!");
 
@@ -327,6 +491,8 @@ console.log("🔥 Firebase + Firestore poprawnie zainicjalizowane!");
 
 <script src="edytor.js"></script>
 <script src="importdanych.js"></script>
+<script src="styl-elegancki.js"></script>
+<script src="styl-wlasny.js"></script>
 <script src="baner.js"></script>
 
 <!-- jeśli plik używa importów – musi być module -->
@@ -392,6 +558,7 @@ console.log("🔥 Firebase + Firestore poprawnie zainicjalizowane!");
 
       const importExcelBtn = document.getElementById('importExcelBtn');
       const importImagesBtn = document.getElementById('importImagesBtn');
+      const addBlankPageBtn = document.getElementById('addBlankPageBtn');
       const pdfButton = document.getElementById('pdfButton');
       const catalogSettingsBtn = document.getElementById('catalogSettingsBtn');
 const canvaPdfButton = document.getElementById('canvaPdfButton');
@@ -410,6 +577,364 @@ const canvaPdfButton = document.getElementById('canvaPdfButton');
         };
       }
 
+      if (addBlankPageBtn) {
+        addBlankPageBtn.onclick = () => {
+          if (typeof window.createNewPage === 'function') {
+            window.createNewPage();
+            window.projectOpen = true;
+            window.projectDirty = true;
+            if (pdfButton) pdfButton.disabled = false;
+            if (typeof window.createZoomSlider === 'function') window.createZoomSlider();
+          } else {
+            console.error('createNewPage nie załadowane');
+          }
+        };
+      }
+
+      // Pobierz projekt
+      const downloadBtn = document.getElementById('downloadProjectBtn');
+      const downloadModal = document.getElementById('downloadProjectModal');
+      const downloadClose = document.getElementById('downloadProjectClose');
+      const downloadSave = document.getElementById('downloadProjectSave');
+      const downloadPdf = document.getElementById('downloadPdfBtn');
+      const downloadCanva = document.getElementById('downloadCanvaBtn');
+      const downloadName = document.getElementById('downloadProjectName');
+      const downloadPageInput = document.getElementById('downloadPageInput');
+      const downloadPageRadios = document.querySelectorAll('input[name="downloadPageMode"]');
+
+      function setDownloadPageMode(mode) {
+        if (!downloadPageInput) return;
+        const isCustom = mode === 'custom';
+        downloadPageInput.disabled = !isCustom;
+        if (!isCustom) downloadPageInput.value = '';
+        document.querySelectorAll('.download-page-option').forEach(label => {
+          const radio = label.querySelector('input[type="radio"]');
+          label.classList.toggle('active', radio && radio.checked);
+        });
+      }
+
+      downloadPageRadios.forEach(r => {
+        r.addEventListener('change', () => setDownloadPageMode(r.value));
+      });
+
+      function getDownloadPageSelection() {
+        const mode = document.querySelector('input[name="downloadPageMode"]:checked')?.value || 'all';
+        if (mode !== 'custom') return null;
+        const pages = parsePageInput(downloadPageInput?.value || '');
+        if (!pages.length) {
+          if (typeof window.showAppToast === 'function') {
+            window.showAppToast('Wpisz poprawny zakres stron, np. 1,3,5-7', 'error');
+          } else {
+            alert('Wpisz poprawny zakres stron, np. 1,3,5-7');
+          }
+          return 'invalid';
+        }
+        return pages;
+      }
+
+      if (downloadBtn) {
+        downloadBtn.onclick = () => {
+          if (downloadModal) downloadModal.style.display = 'flex';
+          if (downloadName && window.currentProjectName) {
+            downloadName.value = window.currentProjectName.replace(/\s+/g, "_");
+          }
+          setDownloadPageMode('all');
+        };
+      }
+      if (downloadClose) downloadClose.onclick = () => downloadModal.style.display = 'none';
+      if (downloadSave) downloadSave.onclick = () => document.getElementById('saveProjectBtn')?.click();
+
+      if (downloadPdf) {
+        downloadPdf.onclick = () => {
+          const selection = getDownloadPageSelection();
+          if (selection === 'invalid') return;
+          if (typeof window.generatePDF === 'function') {
+            window.generatePDF(selection || undefined);
+          }
+        };
+      }
+      if (downloadCanva) {
+        downloadCanva.onclick = () => {
+          const selection = getDownloadPageSelection();
+          if (selection === 'invalid') return;
+          if (typeof window.generateCanvaPDF === 'function') {
+            window.generateCanvaPDF(selection || undefined);
+          }
+        };
+      }
+
+      // Szybki kreator
+      const quickModal = document.getElementById('quickCreatorModal');
+      const quickOpen = document.getElementById('quickCreatorBtn');
+      const quickClose = document.getElementById('quickCreatorClose');
+      const quickExcelBtn = document.getElementById('quickExcelBtn');
+      const quickImagesBtn = document.getElementById('quickImagesBtn');
+      const quickCoverBtn = document.getElementById('quickCoverBtn');
+      const quickBannerBtn = document.getElementById('quickBannerBtn');
+      const quickBgBtn = document.getElementById('quickBgBtn');
+      const quickApplyBtn = document.getElementById('quickApplyBtn');
+      const excelInput = document.getElementById('excelFile');
+      const imageInput = document.getElementById('imageInput');
+      let quickSettingsDirty = false;
+      let quickPriceTouched = false;
+      let quickBaseline = null;
+      let quickInit = false;
+
+      function setQuickState(btn, ok) {
+        if (!btn) return;
+        btn.classList.remove('done', 'error');
+        btn.classList.add(ok ? 'done' : 'error');
+      }
+
+      function setStepState(step, ok) {
+        const map = {
+          excel: quickExcelBtn,
+          images: quickImagesBtn,
+          cover: quickCoverBtn,
+          banner: quickBannerBtn,
+          bg: quickBgBtn
+        };
+        setQuickState(map[step], !!ok);
+      }
+      window.quickStatusUpdate = setStepState;
+
+      function updateLayoutUI() {
+        document.querySelectorAll('input[name="quickLayout"]').forEach(radio => {
+          const label = radio.closest('.quick-radio');
+          if (label) label.classList.toggle('active', radio.checked);
+        });
+        if (!quickPriceTouched) {
+          const selectedLayout = document.querySelector('input[name="quickLayout"]:checked')?.value || 'layout6';
+          const priceMult = selectedLayout === 'layout6' ? 1.8 : 1.15;
+          const priceInput = document.getElementById('quickPriceSize');
+          if (priceInput) priceInput.value = Math.round(24 * priceMult);
+        }
+      }
+
+      function markQuickDirty() {
+        if (quickInit) return;
+        quickSettingsDirty = true;
+      }
+
+      if (quickOpen) {
+        quickOpen.onclick = () => {
+          if (typeof window.openQuickCreator === 'function') {
+            window.openQuickCreator();
+            return;
+          }
+          if (quickModal) quickModal.style.display = 'flex';
+          quickInit = true;
+          quickPriceTouched = false;
+          // Domyślnie czerwone X, ale jeśli już wybrano pliki – ustaw zielone
+          setQuickState(quickExcelBtn, excelInput?.files && excelInput.files.length > 0);
+          setQuickState(quickImagesBtn, imageInput?.files && imageInput.files.length > 0);
+          setQuickState(quickCoverBtn, document.getElementById('coverFileInput')?.files?.length > 0);
+          setQuickState(quickBannerBtn, document.getElementById('bannerFileInput')?.files?.length > 0);
+          setQuickState(quickBgBtn, document.getElementById('backgroundFileInput')?.files?.length > 0);
+          updateLayoutUI();
+          // ustaw wartości domyślne (żeby szybki kreator = normalny efekt)
+          const selectedLayout = document.querySelector('input[name="quickLayout"]:checked')?.value || 'layout6';
+          const priceMult = selectedLayout === 'layout6' ? 1.8 : 1.15;
+          const defaults = (window.pages && window.pages.length > 0) ? window.pages[0].settings : {
+            currency: 'euro',
+            fontFamily: 'Arial',
+            nameSize: 12,
+            priceSize: Math.round(24 * priceMult),
+            indexSize: 14,
+            nameColor: '#111111',
+            priceColor: '#000000',
+            indexColor: '#111111',
+            rankSize: 12,
+            rankColor: '#111111'
+          };
+          document.getElementById('quickCurrency').value = defaults.currency || 'euro';
+          document.getElementById('quickFont').value = defaults.fontFamily || 'Arial';
+          document.getElementById('quickNameSize').value = defaults.nameSize || 12;
+          document.getElementById('quickNameColor').value = defaults.nameColor || '#111111';
+          document.getElementById('quickPriceSize').value = defaults.priceSize || 24;
+          document.getElementById('quickPriceColor').value = defaults.priceColor || '#000000';
+          document.getElementById('quickIndexSize').value = defaults.indexSize || 14;
+          document.getElementById('quickIndexColor').value = defaults.indexColor || '#111111';
+          document.getElementById('quickRankSize').value = defaults.rankSize || 12;
+          document.getElementById('quickRankColor').value = defaults.rankColor || '#111111';
+          quickBaseline = {
+            currency: document.getElementById('quickCurrency').value,
+            fontFamily: document.getElementById('quickFont').value,
+            nameSize: document.getElementById('quickNameSize').value,
+            nameColor: document.getElementById('quickNameColor').value,
+            priceSize: document.getElementById('quickPriceSize').value,
+            priceColor: document.getElementById('quickPriceColor').value,
+            indexSize: document.getElementById('quickIndexSize').value,
+            indexColor: document.getElementById('quickIndexColor').value,
+            rankSize: document.getElementById('quickRankSize').value,
+            rankColor: document.getElementById('quickRankColor').value
+          };
+          quickSettingsDirty = false;
+          quickInit = false;
+        };
+      }
+      if (quickClose) quickClose.onclick = () => quickModal.style.display = 'none';
+
+      if (quickExcelBtn) {
+        quickExcelBtn.onclick = () => {
+          const layout = document.querySelector('input[name="quickLayout"]:checked')?.value || 'layout6';
+          window.quickCreatorLayout = layout;
+          window.quickCreatorExcelPick = true;
+          if (excelInput) excelInput.click();
+        };
+      }
+
+      document.querySelectorAll('input[name="quickLayout"]').forEach(r => {
+        r.addEventListener('change', updateLayoutUI);
+      });
+
+      // Zmiana pól w ustawieniach = dirty
+      ['quickCurrency','quickFont','quickNameSize','quickNameColor','quickPriceSize','quickPriceColor','quickIndexSize','quickIndexColor','quickRankSize','quickRankColor']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('input', markQuickDirty);
+        });
+      const quickPriceInput = document.getElementById('quickPriceSize');
+      if (quickPriceInput) {
+        quickPriceInput.addEventListener('input', () => {
+          if (!quickInit) quickPriceTouched = true;
+        });
+      }
+      if (excelInput) {
+        excelInput.addEventListener('change', () => {
+          if (window.quickCreatorLayout) {
+            if (typeof importExcelMultiPage === 'function') importExcelMultiPage();
+          }
+          window.quickCreatorExcelPick = false;
+          if (quickExcelBtn) {
+            setQuickState(quickExcelBtn, excelInput.files && excelInput.files.length > 0);
+          }
+        });
+      }
+      if (quickImagesBtn && imageInput) {
+        quickImagesBtn.onclick = () => imageInput.click();
+        imageInput.addEventListener('change', () => {
+          if (imageInput.files && imageInput.files.length > 0) {
+            setQuickState(quickImagesBtn, true);
+            window.quickImageFiles = Array.from(imageInput.files);
+            if (window.allProducts && window.allProducts.length > 0 && typeof window.importImagesFromFiles === 'function') {
+              window.importImagesFromFiles(window.quickImageFiles);
+            }
+          }
+        });
+      }
+      if (quickCoverBtn) {
+        quickCoverBtn.onclick = () => document.getElementById('coverFileInput')?.click();
+        document.getElementById('coverFileInput')?.addEventListener('change', (e) => {
+          setQuickState(quickCoverBtn, e.target.files && e.target.files.length > 0);
+        });
+      }
+      if (quickBannerBtn) {
+        quickBannerBtn.onclick = () => document.getElementById('bannerFileInput')?.click();
+        document.getElementById('bannerFileInput')?.addEventListener('change', (e) => {
+          setQuickState(quickBannerBtn, e.target.files && e.target.files.length > 0);
+        });
+      }
+      if (quickBgBtn) {
+        quickBgBtn.onclick = () => document.getElementById('backgroundFileInput')?.click();
+        document.getElementById('backgroundFileInput')?.addEventListener('change', (e) => {
+          setQuickState(quickBgBtn, e.target.files && e.target.files.length > 0);
+        });
+      }
+
+      if (quickApplyBtn) {
+        quickApplyBtn.onclick = () => {
+          if (typeof window.showBusyOverlay === 'function') {
+            window.showBusyOverlay('Tworzenie katalogu…');
+          }
+          if (typeof window.showEditorView === 'function') {
+            window.showEditorView();
+          }
+          const currentSnapshot = {
+            currency: document.getElementById('quickCurrency')?.value || 'euro',
+            fontFamily: document.getElementById('quickFont')?.value || 'Arial',
+            nameSize: document.getElementById('quickNameSize')?.value || '12',
+            nameColor: document.getElementById('quickNameColor')?.value || '#111111',
+            priceSize: document.getElementById('quickPriceSize')?.value || '24',
+            priceColor: document.getElementById('quickPriceColor')?.value || '#000000',
+            indexSize: document.getElementById('quickIndexSize')?.value || '14',
+            indexColor: document.getElementById('quickIndexColor')?.value || '#111111',
+            rankSize: document.getElementById('quickRankSize')?.value || '12',
+            rankColor: document.getElementById('quickRankColor')?.value || '#111111'
+          };
+          const changed = !quickBaseline || Object.keys(currentSnapshot).some(k => String(currentSnapshot[k]) !== String(quickBaseline[k]));
+          if (changed && typeof window.applyQuickSettings === 'function') {
+            const payload = {};
+            const current = {
+              currency: document.getElementById('quickCurrency')?.value || 'euro',
+              fontFamily: document.getElementById('quickFont')?.value || 'Arial',
+              nameSize: document.getElementById('quickNameSize')?.value || '12',
+              nameColor: document.getElementById('quickNameColor')?.value || '#111111',
+              priceSize: document.getElementById('quickPriceSize')?.value || '24',
+              priceColor: document.getElementById('quickPriceColor')?.value || '#000000',
+              indexSize: document.getElementById('quickIndexSize')?.value || '14',
+              indexColor: document.getElementById('quickIndexColor')?.value || '#111111',
+              rankSize: document.getElementById('quickRankSize')?.value || '12',
+              rankColor: document.getElementById('quickRankColor')?.value || '#111111'
+            };
+            if (!quickPriceTouched) {
+              const selectedLayout = document.querySelector('input[name="quickLayout"]:checked')?.value || 'layout6';
+              const priceMult = selectedLayout === 'layout6' ? 1.8 : 1.15;
+              current.priceSize = String(Math.round(24 * priceMult));
+              const priceInput = document.getElementById('quickPriceSize');
+              if (priceInput) priceInput.value = current.priceSize;
+            }
+            const base = quickBaseline || {};
+            if (String(current.currency) !== String(base.currency)) payload.currency = current.currency;
+            if (String(current.fontFamily) !== String(base.fontFamily)) payload.fontFamily = current.fontFamily;
+            if (String(current.nameSize) !== String(base.nameSize)) payload.nameSize = parseInt(current.nameSize, 10);
+            if (String(current.nameColor) !== String(base.nameColor)) payload.nameColor = current.nameColor;
+            if (String(current.priceSize) !== String(base.priceSize)) payload.priceSize = parseInt(current.priceSize, 10);
+            if (String(current.priceColor) !== String(base.priceColor)) payload.priceColor = current.priceColor;
+            if (String(current.indexSize) !== String(base.indexSize)) payload.indexSize = parseInt(current.indexSize, 10);
+            if (String(current.indexColor) !== String(base.indexColor)) payload.indexColor = current.indexColor;
+            if (String(current.rankSize) !== String(base.rankSize)) payload.rankSize = parseInt(current.rankSize, 10);
+            if (String(current.rankColor) !== String(base.rankColor)) payload.rankColor = current.rankColor;
+            if (Object.keys(payload).length > 0) {
+              window.applyQuickSettings(payload);
+            }
+            if (typeof window.fixProductImageDrag === 'function') {
+              window.fixProductImageDrag();
+            }
+          }
+          const hasProducts = Array.isArray(window.allProducts) && window.allProducts.length > 0;
+          const hasPages = Array.isArray(window.pages) && window.pages.length > 0;
+          if ((!hasPages) && (!hasProducts)) {
+            if (typeof window.showAppToast === 'function') {
+              window.showAppToast('Najpierw zaimportuj Excel', 'error');
+            }
+          }
+          if (hasProducts && hasPages) {
+            if (excelInput) excelInput.value = '';
+            if (imageInput) imageInput.value = '';
+            window.quickImageFiles = null;
+          }
+          const coverInput = document.getElementById('coverFileInput');
+          const bannerInput = document.getElementById('bannerFileInput');
+          const bgInput = document.getElementById('backgroundFileInput');
+          if (hasProducts && hasPages) {
+            if (coverInput) coverInput.value = '';
+            if (bannerInput) bannerInput.value = '';
+            if (bgInput) bgInput.value = '';
+            setQuickState(quickExcelBtn, false);
+            setQuickState(quickImagesBtn, false);
+            setQuickState(quickCoverBtn, false);
+            setQuickState(quickBannerBtn, false);
+            setQuickState(quickBgBtn, false);
+            quickPriceTouched = false;
+          }
+          quickModal.style.display = 'none';
+          if (typeof window.hideBusyOverlay === 'function') {
+            setTimeout(() => window.hideBusyOverlay(), 400);
+          }
+        };
+      }
+
    // Zmień ten fragment:
 if (pdfButton) {
   pdfButton.onclick = () => {
@@ -420,13 +945,131 @@ if (pdfButton) {
     }
   };
 }
-if (canvaPdfButton) {
-  canvaPdfButton.onclick = () => {
-    if (typeof window.generateCanvaPDF === 'function') {
-      window.generateCanvaPDF();
+function parsePageInput(input) {
+  if (!input) return [];
+  const parts = input.split(',').map(s => s.trim()).filter(Boolean);
+  const pages = new Set();
+  parts.forEach(part => {
+    if (part.includes('-')) {
+      const [a, b] = part.split('-').map(s => parseInt(s.trim(), 10));
+      if (Number.isFinite(a) && Number.isFinite(b)) {
+        const start = Math.min(a, b);
+        const end = Math.max(a, b);
+        for (let i = start; i <= end; i++) pages.add(i);
+      }
     } else {
-      console.error('generateCanvaPDF nie jest dostępne');
+      const n = parseInt(part, 10);
+      if (Number.isFinite(n)) pages.add(n);
     }
+  });
+  return Array.from(pages);
+}
+
+function showCanvaExportDialog() {
+  return new Promise(resolve => {
+    const totalPages = (window.pages && window.pages.length) ? window.pages.length : 0;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100000;
+    `;
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      width: 420px; max-width: 92vw; background: #fff; border-radius: 12px;
+      padding: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      font-family: Arial;
+    `;
+    modal.innerHTML = `
+      <h3 style="margin:0 0 6px 0;">Eksport do Canva</h3>
+      <div style="font-size:13px;color:#555;margin-bottom:12px;">
+        Aktualnie stron: <strong>${totalPages}</strong>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <button id="canvaAllBtn" style="flex:1;min-width:140px;background:#0b74c8;color:#fff;border:none;padding:8px 10px;border-radius:8px;font-weight:600;">Pobierz wszystkie</button>
+        <button id="canvaCustomBtn" style="flex:1;min-width:140px;background:#f2f4f7;border:1px solid #d0d5dd;padding:8px 10px;border-radius:8px;font-weight:600;">Wybierz ręcznie</button>
+      </div>
+      <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <input type="radio" name="canvaExportMode" value="all" checked>
+        <span>Wszystkie strony</span>
+      </label>
+      <label style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+        <input type="radio" name="canvaExportMode" value="custom">
+        <span>Tylko wybrane strony</span>
+      </label>
+      <input id="canvaPageInput" type="text" placeholder="np. 1,3,5-7"
+        style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:8px;">
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button id="canvaExportOk" style="flex:1;background:#0b74c8;color:#fff;border:none;padding:9px;border-radius:8px;font-weight:600;">Zapisz</button>
+        <button id="canvaExportCancel" style="flex:1;background:#f0f0f0;border:1px solid #ccc;padding:9px;border-radius:8px;">Anuluj</button>
+      </div>
+    `;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const input = modal.querySelector('#canvaPageInput');
+    const ok = modal.querySelector('#canvaExportOk');
+    const cancel = modal.querySelector('#canvaExportCancel');
+    const allBtn = modal.querySelector('#canvaAllBtn');
+    const customBtn = modal.querySelector('#canvaCustomBtn');
+
+    const setMode = (mode) => {
+      const radio = modal.querySelector(`input[name="canvaExportMode"][value="${mode}"]`);
+      if (radio) radio.checked = true;
+      input.disabled = (mode !== 'custom');
+    };
+    setMode('all');
+
+    allBtn.onclick = () => {
+      overlay.remove();
+      resolve(null);
+    };
+    customBtn.onclick = () => {
+      setMode('custom');
+      input.focus();
+    };
+
+    ok.onclick = () => {
+      const mode = modal.querySelector('input[name="canvaExportMode"]:checked')?.value;
+      if (mode === 'custom') {
+        const pages = parsePageInput(input.value);
+        if (!pages.length) {
+          alert("Wpisz poprawny zakres stron, np. 1,3,5-7");
+          return;
+        }
+        if (totalPages > 0) {
+          const filtered = pages.filter(p => p >= 1 && p <= totalPages);
+          if (!filtered.length) {
+            alert("Zakres poza liczbą stron.");
+            return;
+          }
+          overlay.remove();
+          resolve(filtered);
+          return;
+        }
+        overlay.remove();
+        resolve(pages);
+      } else {
+        overlay.remove();
+        resolve(null);
+      }
+    };
+    cancel.onclick = () => {
+      overlay.remove();
+      resolve('cancel');
+    };
+  });
+}
+
+if (canvaPdfButton) {
+  canvaPdfButton.onclick = async () => {
+    if (typeof window.generateCanvaPDF !== 'function') {
+      console.error('generateCanvaPDF nie jest dostępne');
+      return;
+    }
+    const selection = await showCanvaExportDialog();
+    if (selection === 'cancel') return;
+    window.generateCanvaPDF(selection || undefined);
   };
 }
 
