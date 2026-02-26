@@ -12,7 +12,7 @@ let currentPage = null;
 const DEFAULT_STYLES = {
   nameStyle: { size: 12, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, underline: false },
   indexStyle: { size: 14, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, underline: false },
-  priceStyle: { size: 24, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, underline: false },
+  priceStyle: { size: 24, fontFamily: 'Arial', color: '#000000', bold: true, italic: false, underline: false },
   ratingStyle: { size: 12, fontFamily: 'Arial', color: '#000000', bold: false, italic: false, underline: false },
 
 };
@@ -296,12 +296,7 @@ function createPageEditPanel() {
   if (pageEditPanel) return pageEditPanel;
 
   pageEditPanel = document.createElement('div');
-  pageEditPanel.style.cssText = `
-    position: fixed; top: 20px; right: 20px; background: white; 
-    padding: 15px; border: 1px solid #ccc; border-radius: 8px; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;
-    font-family: Arial; font-size: 14px; display: none; width: 380px; max-height: 80vh; overflow-y: auto;
-  `;
+  pageEditPanel.className = 'page-edit-panel';
 
   const palette = ['#000000', '#e53e3e', '#3182ce', '#38a169', '#dd6b20', '#805ad5'].map(c => 
     `<button class="color-preset" data-color="${c}" style="background:${c}; width:24px; height:24px; border:none; border-radius:4px; margin:2px;"></button>`
@@ -311,17 +306,22 @@ function createPageEditPanel() {
   const fontOptions = fonts.map(f => `<option value="${f}">${f}</option>`).join('');
 
   pageEditPanel.innerHTML = `
-    <div style="margin-bottom: 10px; font-weight: bold;">Edycja strony</div>
-    
-    <label>Baner: 
-      <input type="file" id="pageBannerInput" accept="image/*" style="margin-top: 5px;">
-    </label><br><br>
+    <div class="pe-header">
+      <div class="pe-title">Edycja strony</div>
+      <div class="pe-subtitle">Ustawienia widoku i stylów</div>
+    </div>
 
-    <button id="removeBannerBtn" style="background: #d00; color: white; padding: 5px 10px; border: none; border-radius: 4px;">Usuń baner</button><br><br>
+    <div class="pe-section pe-section-compact">
+      <div class="pe-row">
+        <label class="pe-label">Baner</label>
+        <input type="file" id="pageBannerInput" accept="image/*" class="pe-input-file">
+      </div>
+      <button id="removeBannerBtn" class="pe-btn pe-btn-danger">Usuń baner</button>
+    </div>
 
-    <div style="border: 1px solid #eee; padding: 10px; margin-bottom: 12px; border-radius: 6px; background:#f9f9f9;">
-      <h4 style="margin:0 0 8px; font-size:14px;">Waluta ceny</h4>
-      <select id="currencySelect" style="width:100%; padding:6px; font-size:14px;">
+    <div class="pe-section">
+      <div class="pe-section-title">Waluta ceny</div>
+      <select id="currencySelect" class="pe-select">
         <option value="PLN">PLN (zł)</option>
         <option value="EUR">EUR (€)</option>
         <option value="GBP">GBP (£)</option>
@@ -392,13 +392,21 @@ function createPageEditPanel() {
       <button class="reset-btn" data-type="rating">Przywróć domyślne</button>
     </div>
 
-    <label style="display:block; margin:15px 0 10px;">
-      <input type="checkbox" id="applyToAllPages"> Zastosuj dla wszystkich stron
-    </label>
+    <div class="apply-scope" id="applyScopeBox">
+      <div class="apply-scope-title">Zakres zastosowania</div>
+      <label class="apply-scope-row" id="applyScopeRow">
+        <input type="checkbox" id="applyToAllPages">
+        <span class="apply-scope-text">
+          <strong id="applyScopeLabel">Tylko ta strona</strong><br>
+          <span class="apply-scope-hint" id="applyScopeHint">Zmiany zostaną zapisane na tej stronie.</span>
+        </span>
+        <span class="apply-scope-toggle" id="applyScopeToggle" aria-hidden="true"></span>
+      </label>
+    </div>
 
-    <div style="display: flex; gap: 8px;">
-      <button id="applyPageEditBtn" style="flex:1; background:#007cba; color:white; border:none; padding:8px; border-radius:6px;">Zastosuj</button>
-      <button id="cancelPageEditBtn" style="flex:1; background:#f0f0f0; border:1px solid #ccc; padding:8px; border-radius:6px;">Anuluj</button>
+    <div class="pe-actions">
+      <button id="applyPageEditBtn" class="pe-btn pe-btn-primary">Zastosuj</button>
+      <button id="cancelPageEditBtn" class="pe-btn pe-btn-ghost">Anuluj</button>
     </div>
     
 
@@ -415,14 +423,15 @@ function createPageEditPanel() {
   const updateCheckStyle = (checkbox) => {
     const label = checkbox.parentElement;
     const span = label.querySelector('.check-label');
+    if (!span) return;
     if (checkbox.checked) {
       label.style.backgroundColor = '#007cba';
       label.style.color = 'white';
-      if (span) span.style.color = 'white';
+      span.style.color = 'white';
     } else {
       label.style.backgroundColor = '';
       label.style.color = '';
-      if (span) span.style.color = '';
+      span.style.color = '';
     }
   };
 
@@ -452,13 +461,21 @@ function applyStyle(obj, style) {
 
   // 🔹 jeśli to GROUP (np. cena)
 if (obj instanceof Konva.Group) {
-  obj.getChildren().forEach(child => {
-    if (!(child instanceof Konva.Text)) return;
-
+  const isPriceGroup = obj.getAttr && obj.getAttr('isPriceGroup');
+  const children = obj.getChildren().filter(c => c instanceof Konva.Text);
+  children.forEach((child, idx) => {
     // styl TAK, rozmiar NIE
     child.fill(style.color);
     child.fontFamily(style.fontFamily);
-    child.fontStyle(computeStyle(style));
+
+    if (isPriceGroup) {
+      // tylko główna cena dziedziczy pogrubienie/italic
+      const targetStyle = (idx === 0) ? computeStyle(style) : 'normal';
+      child.fontStyle(targetStyle);
+    } else {
+      child.fontStyle(computeStyle(style));
+    }
+
     child.setAttr('underline', style.underline);
   });
   return;
@@ -483,6 +500,24 @@ window.openPageEdit = function(page) {
   const bannerInput = document.getElementById('pageBannerInput');
   const applyToAllCheckbox = document.getElementById('applyToAllPages');
   const currencySelect = document.getElementById('currencySelect');
+  const applyScopeBox = document.getElementById('applyScopeBox');
+  const applyScopeLabel = document.getElementById('applyScopeLabel');
+  const applyScopeHint = document.getElementById('applyScopeHint');
+
+  const updateApplyScopeUI = () => {
+    const isAll = applyToAllCheckbox.checked;
+    if (applyScopeBox) {
+      applyScopeBox.classList.toggle('is-all', isAll);
+    }
+    if (applyScopeLabel) {
+      applyScopeLabel.textContent = isAll ? 'Wszystkie strony' : 'Tylko ta strona';
+    }
+    if (applyScopeHint) {
+      applyScopeHint.textContent = isAll
+        ? 'Zmiany zostaną zastosowane do wszystkich stron.'
+        : 'Zmiany zostaną zapisane na tej stronie.';
+    }
+  };
 
   const loadStyle = (type) => {
     const s = page.settings[type + 'Style'] || DEFAULT_STYLES[type + 'Style'];
@@ -505,8 +540,9 @@ window.openPageEdit = function(page) {
   };
 
   ['name', 'index', 'price', 'rating'].forEach(loadStyle);
-  currencySelect.value = page.settings?.currency || 'PLN';
+  currencySelect.value = page.settings?.currency || 'GBP';
   applyToAllCheckbox.checked = false;
+  updateApplyScopeUI();
 
   panel.style.display = 'block';
 
@@ -518,6 +554,8 @@ window.openPageEdit = function(page) {
       page.layer.batchDraw();
     }
   };
+
+  applyToAllCheckbox.addEventListener('change', updateApplyScopeUI);
 
   document.getElementById('applyPageEditBtn').onclick = () => {
     const applyToAll = applyToAllCheckbox.checked;
@@ -602,6 +640,7 @@ if (isPrice) {
 p.layer.batchDraw();
 
 });
+
 
       
       
@@ -790,9 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      if (node instanceof Konva.Image && !node.getAttr('isBox') && node.getAttr('name') !== 'banner') {
-        showImageOptions(node, page);
-      }
+      // ⛔ Wyłączone menu kontekstowe dla obrazów (niepotrzebne)
     });
   });
 });
@@ -808,17 +845,67 @@ document.addEventListener('click', (e) => {
 
 const style = document.createElement('style');
 style.textContent = `
-  .style-section { border: 1px solid #eee; padding: 10px; margin-bottom: 12px; border-radius: 6px; }
-  .style-section h4 { margin: 0 0 8px; font-size: 14px; }
+  .page-edit-panel {
+    position: fixed;
+    top: 56px;
+    right: 16px;
+    width: min(380px, 92vw);
+    max-height: min(86vh, 900px);
+    overflow: auto;
+    background: #ffffff;
+    border: 1px solid #e4e7ec;
+    border-radius: 14px;
+    box-shadow: 0 18px 40px rgba(16, 24, 40, 0.12);
+    z-index: 10000;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    display: none;
+    padding: 16px;
+  }
+  .pe-header { border-bottom: 1px solid #eef2f6; padding-bottom: 10px; margin-bottom: 14px; }
+  .pe-title { font-size: 18px; font-weight: 700; color: #101828; }
+  .pe-subtitle { font-size: 12px; color: #667085; margin-top: 2px; }
+  .pe-section { border: 1px solid #eef2f6; background: #f9fafb; padding: 12px; border-radius: 10px; margin-bottom: 12px; }
+  .pe-section-compact { background: #ffffff; }
+  .pe-section-title { font-weight: 700; color: #1d2939; margin-bottom: 8px; }
+  .pe-row { display: grid; grid-template-columns: 90px 1fr; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .pe-label { font-weight: 600; color: #344054; }
+  .pe-input-file { width: 100%; }
+  .pe-select { width: 100%; padding: 8px 10px; border: 1px solid #d0d5dd; border-radius: 8px; background: #fff; }
+  .pe-btn { padding: 9px 12px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
+  .pe-btn-primary { background: #0b74c8; color: #fff; }
+  .pe-btn-ghost { background: #f2f4f7; border-color: #e4e7ec; color: #111827; }
+  .pe-btn-danger { background: #e11d48; color: #fff; border: none; }
+  .pe-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; position: sticky; bottom: -1px; background: #ffffff; padding-top: 10px; }
+
+  .style-section { border: 1px solid #eef2f6; padding: 12px; margin-bottom: 12px; border-radius: 10px; background: #ffffff; }
+  .style-section h4 { margin: 0 0 8px; font-size: 14px; color: #1d2939; }
   .style-section label { display: block; margin: 6px 0; }
-  .style-section input[type="number"], .style-section select { width: 100%; padding: 4px; margin-top: 2px; }
+  .style-section input[type="number"], .style-section select { width: 100%; padding: 6px 8px; margin-top: 2px; border-radius: 6px; border: 1px solid #d0d5dd; }
   .color-row { display: flex; align-items: center; gap: 4px; margin: 6px 0; }
-  .color-row input[type="color"] { width: 60px; height: 32px; padding: 2px; }
-  .palette { display: flex; flex-wrap: wrap; width: 160px; }
-  .style-checks { display: flex; gap: 8px; margin: 8px 0; }
-  .style-checks label { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+  .color-row input[type="color"] { width: 56px; height: 32px; padding: 2px; border-radius: 6px; border: 1px solid #d0d5dd; }
+  .palette { display: flex; flex-wrap: wrap; width: 160px; gap: 4px; }
+  .style-checks { display: flex; gap: 8px; margin: 8px 0 6px; }
+  .style-checks label { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; background: #f2f4f7; }
   .check-label { pointer-events: none; }
-  .reset-btn { margin-top: 8px; font-size: 12px; padding: 4px 8px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; }
-  .reset-btn:hover { background: #e9ecef; }
+  .reset-btn { margin-top: 8px; font-size: 12px; padding: 5px 8px; background: #f2f4f7; border: 1px solid #e4e7ec; border-radius: 6px; }
+  .reset-btn:hover { background: #e9edf2; }
+  .apply-scope { border: 1px solid #eef2f6; background: #f9fafb; padding: 12px; border-radius: 10px; margin: 12px 0; }
+  .apply-scope-title { font-size: 13px; font-weight: 700; color: #1d2939; margin-bottom: 6px; }
+  .apply-scope-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; cursor: pointer; }
+  .apply-scope-row input { margin-top: 2px; }
+  .apply-scope-hint { display: inline-block; font-size: 12px; color: #667085; margin-top: 2px; }
+  .apply-scope-text { line-height: 1.2; }
+  .apply-scope-toggle { width: 44px; height: 24px; border-radius: 999px; background: #d0d5dd; position: relative; transition: background 0.2s; }
+  .apply-scope-toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; }
+  .apply-scope.is-all { border-color: #d1e9ff; background: #f0f7ff; }
+  .apply-scope.is-all .apply-scope-title { color: #175cd3; }
+  .apply-scope.is-all .apply-scope-toggle { background: #1570ef; }
+  .apply-scope.is-all .apply-scope-toggle::after { transform: translateX(20px); }
+  @media (max-width: 700px) {
+    .page-edit-panel { left: 8px; right: 8px; top: 8px; width: auto; }
+    .pe-row { grid-template-columns: 1fr; }
+    .pe-actions { grid-template-columns: 1fr; }
+  }
 `;
 document.head.appendChild(style);//dziala
