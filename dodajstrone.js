@@ -43,8 +43,8 @@ window.createEmptyPageUnder = function(parentPage) {
   <div class="grid-overlay" id="g-empty-${n}"></div>
 </div>
 
-<div class="add-page-btn-wrapper" style="text-align: center; margin: 12px 0;">
-  <button class="add-page-btn">+ Dodaj stronę</button>
+<div class="add-page-btn-wrapper">
+  <button class="add-page-btn"><span class="add-page-plus">+</span> Dodaj stronę</button>
 </div>
 
   `;
@@ -205,26 +205,48 @@ markAsEditable(img);
     }
   });
 
-  // === KOPIOWANIE + WKLEJANIE + MENU WARSTW ===
+  // === KOPIOWANIE + WKLEJANIE + MENU WARSTW (TAKIE JAK W GŁÓWNYM SYSTEMIE) ===
   let floatingButtons = null;
 
-  function showFloatingButtons(obj) {
-    if (floatingButtons) floatingButtons.remove();
+  function normalizeForMenu(nodes) {
+    if (window.normalizeSelection) return window.normalizeSelection(nodes);
+    return nodes || [];
+  }
+
+  function showFloatingButtons() {
+    if (floatingButtons) {
+      floatingButtons.remove();
+      floatingButtons = null;
+    }
 
     const btnContainer = document.createElement('div');
     btnContainer.id = 'floatingMenu';
     btnContainer.style.cssText = `
-      position: fixed; bottom: 20px; right: 20px; z-index: 10000;
-      display: flex; gap: 8px; background: #fff; padding: 10px;
-      border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-      border: 1px solid #ccc; pointer-events: auto; font-size: 14px; font-weight: 500;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 99999;
+      display: flex;
+      gap: 12px;
+      background: #fff;
+      padding: 12px 20px;
+      border-radius: 24px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      border: 1px solid #ccc;
+      pointer-events: auto;
+      font-size: 14px;
+      font-weight: 500;
     `;
 
     btnContainer.innerHTML = `
       <button class="fab-btn fab-copy" data-action="copy">Kopiuj</button>
+      <button class="fab-btn fab-cut" data-action="cut">Wytnij</button>
       <button class="fab-btn fab-delete" data-action="delete">Usuń</button>
       <button class="fab-btn fab-front" data-action="front">Na wierzch</button>
       <button class="fab-btn fab-back" data-action="back">Na spód</button>
+      <button class="fab-btn fab-removebg" data-action="removebg">Usuń tło</button>
+      <button class="fab-btn fab-barcolor" data-action="barcolor">Kolor kodu</button>
     `;
 
     document.body.appendChild(btnContainer);
@@ -235,44 +257,169 @@ markAsEditable(img);
         ev.stopPropagation();
         const action = btn.dataset.action;
 
+        page.selectedNodes = normalizeForMenu(page.selectedNodes);
+        const obj = page.selectedNodes[0];
+        if (!obj) return;
+
         if (action === 'copy') {
-          window.globalClipboard = obj.clone();
+          const nodes = normalizeForMenu(page.selectedNodes);
+          window.globalClipboard = nodes.map(n => {
+            const clone = n.clone({ draggable: true, listening: true });
+            clone.getChildren?.().forEach(c => c.listening(true));
+            return clone;
+          });
           window.globalPasteMode = true;
-          hideFloatingButtons();
           pages.forEach(p => p.stage.container().style.cursor = 'copy');
         }
 
-        if (action === 'delete') {
-          obj.destroy();
+        if (action === 'cut') {
+          if (page.selectedNodes.length > 0) {
+            window.globalClipboard = page.selectedNodes.map(n => {
+              const clone = n.clone({ listening: true, draggable: true });
+              clone.getChildren?.().forEach(c => c.listening(true));
+              return clone;
+            });
+            window.globalPasteMode = true;
+            page.selectedNodes.forEach(n => n.destroy());
+            page.selectedNodes = [];
+          } else if (obj) {
+            window.globalClipboard = [obj.clone()];
+            obj.destroy();
+          }
+          page.transformer.nodes([]);
           layer.batchDraw();
           transformerLayer.batchDraw();
-          hideFloatingButtons();
+        }
+
+        if (action === 'delete') {
+          if (page.selectedNodes.length > 0) {
+            page.selectedNodes.forEach(n => n.destroy());
+            page.selectedNodes = [];
+          } else {
+            obj.destroy();
+          }
+          page.transformer.nodes([]);
+          layer.batchDraw();
+          transformerLayer.batchDraw();
         }
 
         if (action === 'front') {
           obj.moveToTop();
-          layer.batchDraw();
+          page.transformer.nodes([obj]);
         }
 
         if (action === 'back') {
           obj.moveToBottom();
-          layer.batchDraw();
+          page.transformer.nodes([obj]);
         }
 
-        if (action === 'forward') {
-          obj.moveUp();
-          layer.batchDraw();
+        if (action === 'removebg') {
+          if (!(obj instanceof Konva.Image)) return alert("To nie jest obraz.");
+          if (typeof window.removeBackgroundAI !== "function") return alert("Brak funkcji usuwania tła.");
+
+          const oldX = obj.x();
+          const oldY = obj.y();
+          const oldWidth = obj.width();
+          const oldHeight = obj.height();
+          const oldScaleX = obj.scaleX();
+          const oldScaleY = obj.scaleY();
+          const oldRotation = obj.rotation();
+          const oldOffsetX = obj.offsetX ? obj.offsetX() : 0;
+          const oldOffsetY = obj.offsetY ? obj.offsetY() : 0;
+          const oldAttrs = obj.getAttrs ? { ...obj.getAttrs() } : {};
+
+          const originalUrl = obj.toDataURL();
+          window.removeBackgroundAI(originalUrl, cleaned => {
+            Konva.Image.fromURL(cleaned, newImg => {
+              newImg.x(oldX);
+              newImg.y(oldY);
+              newImg.width(oldWidth);
+              newImg.height(oldHeight);
+              newImg.scaleX(oldScaleX);
+              newImg.scaleY(oldScaleY);
+              newImg.rotation(oldRotation);
+              if (newImg.offsetX) newImg.offsetX(oldOffsetX);
+              if (newImg.offsetY) newImg.offsetY(oldOffsetY);
+              newImg.draggable(true);
+              newImg.listening(true);
+              newImg.setAttrs({
+                ...oldAttrs,
+                x: oldX,
+                y: oldY,
+                width: oldWidth,
+                height: oldHeight,
+                scaleX: oldScaleX,
+                scaleY: oldScaleY,
+                rotation: oldRotation,
+                originalSrc: cleaned,
+                originalSrcBeforeRmbg: oldAttrs.originalSrc || originalUrl
+              });
+              if (typeof window.setupProductImageDrag === "function" && newImg.getAttr && newImg.getAttr("isProductImage")) {
+                window.setupProductImageDrag(newImg, layer);
+              }
+              obj.destroy();
+              layer.add(newImg);
+              newImg.moveToTop();
+              if (page && page.transformer && page.transformer.nodes) page.transformer.nodes([newImg]);
+              if (Array.isArray(page.selectedNodes)) page.selectedNodes = [newImg];
+              layer.batchDraw();
+              transformerLayer.batchDraw();
+            });
+          });
         }
 
-        if (action === 'backward') {
-          obj.moveDown();
-          layer.batchDraw();
+        if (action === 'barcolor') {
+          const barcode = page.selectedNodes[0];
+          if (!barcode || !barcode.getAttr("isBarcode"))
+            return alert("Zaznacz kod kreskowy!");
+
+          if (!window.showSubmenu) return;
+
+          window.showSubmenu(`
+              <button class="colorBtn" data-color="#000000" style="width:32px;height:32px;border-radius:6px;border:none;background:#000;"></button>
+              <button class="colorBtn" data-color="#ffffff" style="width:32px;height:32px;border-radius:6px;border:1px solid #aaa;background:#fff;"></button>
+              <button class="colorBtn" data-color="#FFD700" style="width:32px;height:32px;border-radius:6px;border:none;background:#FFD700;"></button>
+              <input type="color" id="colorPicker" style="width:38px;height:32px;border:none;padding:0;margin-left:8px;">
+              <button id="applyColorBtn"
+                  style="
+                      padding:8px 14px;
+                      border-radius:8px;
+                      border:none;
+                      background:#007cba;
+                      color:#fff;
+                      font-weight:600;
+                      cursor:pointer;
+                  ">
+                  Zastosuj
+              </button>
+          `);
+
+          let previewColor = null;
+          document.querySelectorAll(".colorBtn").forEach(btn => {
+            btn.onclick = () => {
+              previewColor = btn.dataset.color;
+              window.recolorBarcode?.(barcode, previewColor, false);
+            };
+          });
+          document.getElementById("colorPicker").oninput = (e) => {
+            previewColor = e.target.value;
+            window.recolorBarcode?.(barcode, previewColor, false);
+          };
+          document.getElementById("applyColorBtn").onclick = () => {
+            if (!previewColor) return window.hideSubmenu?.();
+            window.recolorBarcode?.(barcode, previewColor, true);
+            window.hideSubmenu?.();
+          };
         }
+
+        layer.batchDraw();
+        transformerLayer.batchDraw();
       };
     });
   }
 
   function hideFloatingButtons() {
+    // MENU MA ZNIKAĆ PRZY BRAKU ZAZNACZENIA
     if (floatingButtons) {
       floatingButtons.remove();
       floatingButtons = null;
@@ -311,14 +458,44 @@ markAsEditable(img);
 
     page.transformer.nodes(page.selectedNodes);
 
-    if (page.selectedNodes.length === 1) {
-      showFloatingButtons(node);
+    if (page.selectedNodes.length > 0) {
+      showFloatingButtons();
     } else {
       hideFloatingButtons();
     }
 
     page.layer.batchDraw();
     page.transformerLayer.batchDraw();
+  });
+
+  // === GLOBALNE WKLEJANIE — identycznie jak w głównym systemie ===
+  stage.on('click.paste', (e) => {
+    if (!window.globalPasteMode) return;
+    const clip = window.globalClipboard;
+    if (!Array.isArray(clip) || clip.length === 0) return;
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+
+    const baseX = clip[0].x();
+    const baseY = clip[0].y();
+    const newNodes = [];
+
+    clip.forEach(src => {
+      const clone = src.clone({ draggable: true, listening: true });
+      clone.x(pointer.x + (src.x() - baseX));
+      clone.y(pointer.y + (src.y() - baseY));
+      layer.add(clone);
+      newNodes.push(clone);
+    });
+
+    layer.batchDraw();
+    transformerLayer.batchDraw();
+    page.selectedNodes = newNodes;
+    page.transformer.nodes(newNodes);
+
+    window.globalPasteMode = false;
+    window.globalClipboard = null;
+    pages.forEach(p => p.stage.container().style.cursor = 'default');
   });
 
   // === OBRYSY DLA MULTI-SELECT (CANVA STYLE) ===
@@ -609,12 +786,13 @@ function addAddButtonUnderPage(page) {
   const wrapper = document.createElement('div');
   wrapper.className = 'add-page-btn-wrapper';
   wrapper.style.cssText = `
-    text-align: center;
-    margin-top: 40px;
-    margin-bottom: 200px; /* dopasowane do większej wysokości strony */
-`;
+    display: flex;
+    justify-content: center;
+    width: ${W}px;
+    margin: 24px auto 160px;
+  `;
 
-  wrapper.innerHTML = `<button class="add-page-btn">+ Dodaj stronę</button>`;
+  wrapper.innerHTML = `<button class="add-page-btn"><span class="add-page-plus">+</span> Dodaj stronę</button>`;
   page.container.appendChild(wrapper);
 
   wrapper.querySelector('.add-page-btn').onclick = () => window.createEmptyPageUnder(page);
@@ -633,11 +811,12 @@ window.addEventListener('excelImported', () => {
 // === GŁÓWNY PRZYCISK NA DOLE ===
 function addMainAddButton() {
   if (document.getElementById('mainAddPageBtn')) return;
+  if (pages && pages.length > 0) return;
 
   const btn = document.createElement('div');
   btn.id = 'mainAddPageBtn';
-  btn.style.cssText = 'text-align: center; margin: 30px 0;';
-  btn.innerHTML = `<button class="add-page-btn" style="font-size: 16px; padding: 12px 24px;">+ Dodaj pustą stronę na końcu</button>`;
+  btn.style.cssText = `text-align: center; margin: 30px auto; width: ${W}px;`;
+  btn.innerHTML = `<button class="add-page-btn"><span class="add-page-plus">+</span> Dodaj stronę</button>`;
   document.getElementById('pagesContainer').after(btn);
 
   btn.querySelector('.add-page-btn').onclick = () => {
@@ -647,7 +826,10 @@ function addMainAddButton() {
 }
 
 document.addEventListener('DOMContentLoaded', addMainAddButton);
-window.addEventListener('excelImported', addMainAddButton);
+window.addEventListener('excelImported', () => {
+  const mainBtn = document.getElementById('mainAddPageBtn');
+  if (mainBtn) mainBtn.remove();
+});
 
 // === OBSERWUJ NOWE STRONY ===
 const observer = new MutationObserver((mutations) => {
@@ -668,37 +850,66 @@ observer.observe(document.getElementById('pagesContainer'), { childList: true })
 const addPageBtnStyle = document.createElement('style');
 addPageBtnStyle.textContent = `
   .add-page-btn {
-    background: #007cba;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
+    background: #f8fafc;
+    color: #111827;
+    border: 2px solid #d1d5db;
+    padding: 12px 64px 12px 48px;
+    border-radius: 16px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: 600;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .add-page-btn .add-page-plus {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .add-page-btn::before {
+    content: "";
+    position: absolute;
+    right: 46px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: #d1d5db;
+  }
+  .add-page-btn::after {
+    content: "▾";
+    position: absolute;
+    right: 16px;
+    font-size: 16px;
+    color: #6b7280;
   }
   .add-page-btn:hover {
-    background: #005a87;
+    background: #ffffff;
+    border-color: #cbd5e1;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
   }
-    
 `;
 document.head.appendChild(addPageBtnStyle);
 // 🔥 FIX widoczności przycisku „+ Dodaj stronę” po zwiększeniu marginesów
 const styleFix = document.createElement("style");
 styleFix.textContent = `
   .add-page-btn-wrapper {
-      margin-top: 40px !important;
-      margin-bottom: 300px !important;
-      margin-left: -150px !important;  /* PRZESUNIĘCIE W LEWO */
+      margin-top: 24px !important;
+      margin-bottom: 160px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+      display: flex !important;
+      justify-content: center !important;
+      width: ${W}px !important;
   }
 `;
-
-
-
-
 document.head.appendChild(styleFix);
 const tooltipCSS = document.createElement("style");
 
@@ -741,5 +952,3 @@ window.reorderPages = function () {
         p.container.querySelector(".page-title").textContent = "Page " + (i + 1);
     });
 };
-
-
